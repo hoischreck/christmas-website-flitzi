@@ -17,22 +17,16 @@ exports.getPrompt = function (iString) {
     })
 }
 
-exports.getYorN = function (iString) {
-    var i = exports.getPrompt(iString);
-    i.then((userInput) => {
-        userInput = userInput.toUpperCase();
-        if (userInput === "Y") {
-            return new Promise((resolve, rejects) => {
-                return resolve(true);
-            });
-        }
-        else if (userInput === "N") {
-            return new Promise((resolve, rejects) => {
-                return resolve(false);
-            });
-        }
-        else {
-            return exports.getYorN(iString);
-        }
-    }) 
+exports.getYorN = async function (iString) {
+    var userInput = await exports.getPrompt(iString);
+    userInput = userInput.toUpperCase();
+    if (userInput === "Y") {
+        return true;
+    }
+    else if (userInput === "N") {
+        return false;
+    }
+    else {
+        return exports.getYorN(iString);
+    }
 }

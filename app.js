@@ -5,6 +5,8 @@ var inputAsync = require(__dirname + "/asyncInput.js");
 const PORT = 3000;
 const user_data_path = __dirname + "/data/user_data.json"
 
+// todo: create classes and controlles for server tasks
+
 function saveUsers(users) {
     fs.writeFileSync(user_data_path, JSON.stringify(users));
 }
@@ -13,6 +15,16 @@ function readUsers() {
     let data = fs.readFileSync(user_data_path, "utf8")
     var users = data.length <= 0 ? {} : JSON.parse(data);
     return users;
+}
+
+function shutdownServer(save = true) {
+    if (save) {
+        saveUsers(users);
+        console.log("[---Saved successfully before termination---]");
+    } else {
+        console.log("[---Termination without saving---]")
+    }
+    process.exit(0);
 }
 
 var UserInfo = function(name, code) {
@@ -39,22 +51,16 @@ app.get("/", (req, res) => {
     res.sendFile(__dirname + "/public_html/index.html");
 })
 
+
+// exit with saving by using signal interrupt
 process.on("SIGINT", () => {
-    saveUsers(users);
-    console.log("Saved successfully before termination");
-    process.exit(0);
+    shutdownServer();
 })
 
 // start server
 app.listen(PORT);
 console.log("Server is listening at port: " + PORT);
 
-var saveBeforeShutdown = inputAsync.getYorN("Do you want to save before shutting down the server (Y/N)");
-saveBeforeShutdown.then((state) => {
-    console.log(state);
-})
-
-// var test = inputAsync.getPrompt("test frage");
-// test.then((answer) => {
-//     console.log("Testeingabe: " + answer);
-// })
+// ask for shutdown save async input
+var saveBeforeShutdown = inputAsync.getYorN("Shutdown ([Y]es-save/[N]o-save)\n");
+saveBeforeShutdown.then((state) => {shutdownServer(save=state)});
