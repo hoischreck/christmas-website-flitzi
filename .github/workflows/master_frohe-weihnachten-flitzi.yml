@@ -52,5 +52,5 @@ jobs:
         with:
           app-name: 'frohe-weihnachten-flitzi'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_8BF7629F3B384969BECB558519F458D7 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_12C461275E094392BB080A5904A1C620 }}
           package: .
