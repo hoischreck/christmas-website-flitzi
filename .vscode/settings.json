@@ -1,0 +1,8 @@
+{
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        ".vscode{,/**}"
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/c17ad5fe-1d50-4db0-94d0-5d6f559e0b1b/resourceGroups/dashboards/providers/Microsoft.Web/sites/frohe-weihnachten-flitzi",
+    "appService.deploySubpath": "."
+}

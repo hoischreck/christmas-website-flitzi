@@ -10,7 +10,10 @@ exports.UserData = function UserData(code, codeUsed = false) {
 
 exports.MyServer = class MyServer {
     static USER_DATA_PATH = __dirname + "/data/user_data.json";
-    
+    static SERVER_MSG_LOG_PREFIX = "[SERVER]: ";
+    static SERVER_WARNING_LOG_PREFIX = "![SERVER-Warning]: ";
+    static SERVER_ERR_LOG_PREFIX = "!![SERVER-Error]: ";
+
     constructor(app) {
         this.app = app;
         this.users = this._readUsers();
@@ -19,7 +22,20 @@ exports.MyServer = class MyServer {
     // Server control
     // todo: maybe outsource and split into server controllers
 
-    shutdown = (save = true) => {
+    log(message, type="message") {
+        var prefix = MyServer.SERVER_MSG_LOG_PREFIX;
+        switch(type) {
+            case "warning":
+                prefix = MyServer.SERVER_WARNING_LOG_PREFIX;
+                break;
+            case "error":
+                prefix = MyServer.SERVER_ERR_LOG_PREFIX;
+                break;
+        }
+        console.log(prefix + message);
+    }
+    
+    shutdown(save = true) {
         if (save) {
             this.saveUsers();
             console.log("[-!-] Saved successfully before termination [-!-]");
@@ -31,22 +47,22 @@ exports.MyServer = class MyServer {
 
     // app control
     
-    addAppControl = (controler) => {
+    addAppControl(controler) {
         controler(this.app);
         //todo: use a list of active controllers, also for server controllers?
     }
 
     // User control
 
-    addUser = (name, userInfoObject) => {
+    addUser(name, userInfoObject) {
         this.users[name] = userInfoObject;
     }
     
-    saveUsers = () => {
+    saveUsers() {
         fs.writeFileSync(MyServer.USER_DATA_PATH, JSON.stringify(this.users));
     }
 
-    _readUsers = () => {
+    _readUsers() {
         let data = fs.readFileSync(MyServer.USER_DATA_PATH, "utf8")
         var users = data.length <= 0 ? {} : JSON.parse(data);
         return users;
