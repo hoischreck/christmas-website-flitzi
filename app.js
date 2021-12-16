@@ -6,8 +6,10 @@ var server = require(__dirname + "/server.js");
 
 const MASTER_TOKEN = "admin";
 const MASTER_ARG = "pw";
-const PORT = 3000;
+const PORT = process.env.PORT ? process.env.PORT : 3000;
 
+
+console.log(PORT);
 // todo: create classes and controlles for server tasks
 
 var app = express();
@@ -17,7 +19,7 @@ var myCommands = new server.CommandManager(myServer);
 myCommands.addCommand("addUser", server.addUserCommand);
 
 //Data-instantiation finished
-console.log("data-instantiation finished");
+myServer.log("Data-instantiation finished");
 
 // setup
 app.set("view engine", "ejs");
@@ -69,7 +71,7 @@ process.on("SIGINT", () => {
 
 // start server
 app.listen(PORT);
-console.log("[-!-] Server is listening at port: " + PORT + " [-!-]");
+myServer.log("Listening on port: " + PORT);
 
 // ask for shutdown save async input
 var saveBeforeShutdown = inputAsync.getYorN("Shutdown ([Y]es-save/[N]o-save)\n");
