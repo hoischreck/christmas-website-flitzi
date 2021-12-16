@@ -13,10 +13,9 @@
     <span>Password: <%= password %></span><br>
     <span>Arguments:</span>
     
-    <!-- not working -->
     <% if (Object.keys(arguments).length > 0) { %>
         <% for (const [key, value] of Object.entries(arguments)) {%>
-            <span><% key %> <% value %></span>
+            <span>(<%= key %>=<%= value %>) </span>
         <%} %>
     <%} %>
     

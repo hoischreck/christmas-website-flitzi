@@ -59,7 +59,7 @@ exports.MyServer = class MyServer {
     }
     
     saveUsers() {
-        fs.writeFileSync(MyServer.USER_DATA_PATH, JSON.stringify(this.users));
+        fs.writeFileSync(MyServer.USER_DATA_PATH, JSON.stringify(this.users, null, "\t"));
     }
 
     addUserUpdate(name, userInfoObject) {
