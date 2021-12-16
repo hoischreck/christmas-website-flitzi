@@ -99,7 +99,7 @@ exports.CommandManager = class CommandManager {
     }
 
     runCommand(callString, args) {
-        this.commands[callString](this, args);
+        return this.commands[callString](this.server, args);
     }
 
     validCommand(callString) {
@@ -115,7 +115,7 @@ function argValidator(argObj, ...args) {
             return false
         };
     }
-    return args;
+    return true;
 }
 
 // Update-Command instantly change changes, but data must be reloaded
@@ -132,7 +132,7 @@ exports.addUserCommand = function addUserCommand(server, args) {
 exports.addUserCommandUpt = function addUserCommandUpt(server, args) {
     var validArgs = argValidator(args, "name", "code");
     if (!validArgs) return false;
-
+    
     server.addUserUpdate(args.name, new exports.UserData(args.code));
 
     return true;

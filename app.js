@@ -7,17 +7,17 @@ var server = require(__dirname + "/server.js");
 const MASTER_TOKEN = "admin";
 const MASTER_ARG = "pw";
 
-//const PORT = process.env.PORT ? process.env.PORT : 3000;
-const PORT = 8080;
+const PORT = process.env.PORT ? process.env.PORT : 3000;
 
-console.log(PORT);
 // todo: create classes and controlles for server tasks
 
 var app = express();
 
 var myServer = new server.MyServer(app);
 var myCommands = new server.CommandManager(myServer);
-myCommands.addCommand("addUser", server.addUserCommand);
+
+//myCommands.addCommand("addUser", server.addUserCommand);
+myCommands.addCommand("addUser", server.addUserCommandUpt);
 
 //Data-instantiation finished
 myServer.log("Data-instantiation finished");
@@ -32,7 +32,8 @@ app.use(express.static(__dirname + "/assets"));
 // set route handlers
 app.get("/", (req, res) => {
     //console.log("Index.html requested by: " + req.ip);
-    res.sendFile(__dirname + "/public_html/index.html");
+    var args = {};
+    res.render("index", args);
 })
 
 // admin commands
@@ -40,24 +41,25 @@ app.get("/admin/:command", (req, res) => {
     var command = req.params.command;
     var args = req.query;
     var pw_entry = args[MASTER_ARG];
+    delete args[MASTER_ARG];
     if (!pw_entry || pw_entry != MASTER_TOKEN) {
-        res.sendFile(__dirname + "/public_html/invalid_entry.html");
+        res.render("invalid_entry", {command: command, password: pw_entry, arguments: args});
         return;
     }; // todo: add some sort of handling (invalid pw etc.) -> dynamic error page
     if (!myCommands.validCommand(command)) {
         console.log("invalid command")
-        res.sendFile(__dirname + "/public_html/invalid_entry.html")
+        res.render("invalid_entry")
         return;
     };
 
-    delete args[MASTER_ARG];
+    
 
     var success = myCommands.runCommand(command, args);
 
     if (success) {
-        console.log("success");
+        //console.log("success");
     } else {
-        console.log("unsuccessful");
+        //console.log("unsuccessful");
     }
 
     res.destroy(null); // todo: valid solution?
