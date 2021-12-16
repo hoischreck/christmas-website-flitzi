@@ -62,6 +62,12 @@ exports.MyServer = class MyServer {
         fs.writeFileSync(MyServer.USER_DATA_PATH, JSON.stringify(this.users));
     }
 
+    addUserUpdate(name, userInfoObject) {
+        this.addUser(name, userInfoObject);
+        this.saveUsers();
+        this.users = this._readUsers();
+    }
+
     _readUsers() {
         let data = fs.readFileSync(MyServer.USER_DATA_PATH, "utf8")
         var users = data.length <= 0 ? {} : JSON.parse(data);
@@ -112,11 +118,22 @@ function argValidator(argObj, ...args) {
     return args;
 }
 
+// Update-Command instantly change changes, but data must be reloaded
+
 exports.addUserCommand = function addUserCommand(server, args) {
     var validArgs = argValidator(args, "name", "code");
     if (!validArgs) return false;
     
     server.addUser(args.name, new exports.UserData(args.code));
+
+    return true;
+}
+
+exports.addUserCommandUpt = function addUserCommandUpt(server, args) {
+    var validArgs = argValidator(args, "name", "code");
+    if (!validArgs) return false;
+
+    server.addUserUpdate(args.name, new exports.UserData(args.code));
 
     return true;
 }
