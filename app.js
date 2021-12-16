@@ -6,8 +6,9 @@ var server = require(__dirname + "/server.js");
 
 const MASTER_TOKEN = "admin";
 const MASTER_ARG = "pw";
-const PORT = process.env.PORT ? process.env.PORT : 3000;
 
+//const PORT = process.env.PORT ? process.env.PORT : 3000;
+const PORT = 8080;
 
 console.log(PORT);
 // todo: create classes and controlles for server tasks
