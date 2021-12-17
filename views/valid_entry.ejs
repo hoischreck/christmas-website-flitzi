@@ -4,11 +4,32 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invalid Entry</title>
+    <link rel="stylesheet" href="/style.css" type="text/css">
+    <title>Valid Entry</title>
 </head>
-<body>
-    <h1>Success!</h1>
-    <h2>Your inputs were valid!</h2>
+<body class="body-success">
+
+    <section>
+
+        <h1>Success</h1>
+        <h2>Your inputs were valid</h2><br>
+
+        <div class="text-box-1-small">
+            <b>
+                <%= message %>
+            </b>
+        </div>
+        <br>
+        <br>
+        <input class="btn-1" type="button" value="Back to Homescreen" onclick="goToHome()">
+    </section>
+
+<script>
+    function goToHome() {
+        window.location = "/";
+    }
+</script>
+
 </body>
 </html>
  

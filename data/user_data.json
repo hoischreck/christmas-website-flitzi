@@ -1,1 +1,22 @@
-{"ivo":{"code":1337,"codeUsed":false},"flitzi":{"code":"das ist ein test","codeUsed":false},"Papa":{"code":"das ist ein Test","codeUsed":false}}
+{
+	"ivo": {
+		"code": 1337,
+		"codeUsed": false
+	},
+	"flitzi": {
+		"code": "das ist ein test",
+		"codeUsed": false
+	},
+	"Papa": {
+		"code": "das ist ein Test",
+		"codeUsed": false
+	},
+	"mama": {
+		"code": "test3",
+		"codeUsed": false
+	},
+	"ivo2": {
+		"code": "baum",
+		"codeUsed": false
+	}
+}

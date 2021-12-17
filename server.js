@@ -62,10 +62,15 @@ exports.MyServer = class MyServer {
         fs.writeFileSync(MyServer.USER_DATA_PATH, JSON.stringify(this.users, null, "\t"));
     }
 
+    deleteUserUpdate(name) {
+        this._updateData;
+        delete this.users[name];
+        this._updateData();
+    }
+
     addUserUpdate(name, userInfoObject) {
         this.addUser(name, userInfoObject);
-        this.saveUsers();
-        this.users = this._readUsers();
+        this._updateData();
     }
 
     _readUsers() {
@@ -74,15 +79,15 @@ exports.MyServer = class MyServer {
         return users;
     }
 
-}
-
-class CommandArgs {
-    constructor() {
-        this.name = name;
+    _updateData() {
+        this.saveUsers();
+        this.users = this._readUsers();
     }
+
 }
 
-//todo: add error handling
+
+//todo: add error handling -> e.g. delete entry doesnt exist, etc.
 //todo: add general help functionaltiy
 exports.CommandManager = class CommandManager {
     constructor(server) {
@@ -109,9 +114,9 @@ exports.CommandManager = class CommandManager {
 
 //todo: general command class
 
-function argValidator(argObj, ...args) {
-    for (i in args) {
-        if (!(args[i] in argObj)) {
+function argValidator(desiredArgObj, argList) {
+    for (i in argList) {
+        if (!(argList[i] in desiredArgObj)) {
             return false
         };
     }
@@ -120,20 +125,45 @@ function argValidator(argObj, ...args) {
 
 // Update-Command instantly change changes, but data must be reloaded
 
-exports.addUserCommand = function addUserCommand(server, args) {
-    var validArgs = argValidator(args, "name", "code");
-    if (!validArgs) return false;
+function command(func, ...desiredArgs) {
+    function run(server, args) {
+        var validArgs = argValidator(args, desiredArgs);
+        if (!validArgs) return {
+            success: false,
+            missing_args: desiredArgs
+        };
+        var res = func(server, args);
+        if (res === true) { return {
+            success: true,
+        }} else {return {
+            success: false
+        }}
+    }
+    return run;
+}
+
+// this function is not not needed if server input cannot be made
+exports.addUserCommandTmp = command((server, args) => {
     
     server.addUser(args.name, new exports.UserData(args.code));
-
     return true;
-}
+}, "name", "code")
 
-exports.addUserCommandUpt = function addUserCommandUpt(server, args) {
-    var validArgs = argValidator(args, "name", "code");
-    if (!validArgs) return false;
-    
+
+exports.addUserCommand = command((server, args) => {
+
     server.addUserUpdate(args.name, new exports.UserData(args.code));
-
     return true;
-}
+}, "name", "code")
+
+exports.deleteUserCommand = command((server, args) => {
+    
+    server.deleteUserUpdate(args.name);
+    return true;
+}, "name")
+
+exports.saveUsersCommand = command((server, args) => {
+    
+    server.saveUsers();
+    return true;
+})

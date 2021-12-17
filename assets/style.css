@@ -4,6 +4,10 @@ html {
     --dark-red: #c90000;
     --bright-white: #ffffff;
     --dark-green: #007000;
+    
+    --error-red: #ff0000;
+    --success-green: #00c400;
+    
     font-size: 16px;
 }
 
@@ -13,12 +17,31 @@ body {
     background-color: var(--dark-red);
 }
 
+.body-error {
+    background-color: var(--error-red);
+}
+
+.body-success {
+    background-color: var(--success-green);
+}
+
 section {
     padding-top: 4rem;
     padding-bottom: 4rem;
     display: flex;
     justify-content: center;
-    /*flex-direction: column;*/
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+section {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
     text-align: center;
 }
 
@@ -205,4 +228,41 @@ h1 {
 
 .footer__link_container {
     float: right;
+}
+
+/* Generic elements */
+
+.text-box-1 {
+    background-color: white;
+    width: 50%;
+    padding: 1.5rem;
+    border-radius: 10px;
+    word-wrap: break-word;
+    text-align: left;
+}
+
+.text-box-1-small {
+    background-color: white;
+    width: 30%;
+    padding: 1.5rem;
+    border-radius: 10px;
+    word-wrap: break-word;
+    margin-bottom: 1rem;
+}
+
+.btn-1 {
+    background-color: #f1f1f1;
+    font-size: 1rem;
+    font-weight: bold;
+    width: 200px;
+    height: 40px;
+    border-radius: 6px;
+    border: none;
+    /* border: none; */
+}
+.btn-1:hover {
+    background-color: #cfcfcf;
+    border-top: 2px solid #929292;
+    border-left: 2px solid #929292;
+    border-right: 2px solid #929292;
 }

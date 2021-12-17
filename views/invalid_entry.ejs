@@ -4,21 +4,44 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/style.css" type="text/css">
     <title>Invalid Entry</title>
 </head>
-<body>
-    <h1>Error</h1>
-    <h2>Your inputs were invalid!</h2><br>
-    <span>Command: <%= command %></span><br>
-    <span>Password: <%= password %></span><br>
-    <span>Arguments:</span>
+<body class="body-error">
+
+    <section>        
+
+        <h1>Error</h1>
+        <h2>Your inputs were invalid!</h2><br>
+        
+        <div class="text-box-1-small">
+            <b><%= message %></b>
+        </div>
+
+        <div class="text-box-1">    
+
+            <span><u>Command:</u> <b><%= command %>()</b></span><br><br>
+            <span><u>Password:</u> <b><%= password %></b> (Argument: <%= password_arg %>)</span><br><br>
+            <span><u>Arguments:</u> </span>
+            
+            <% if (Object.keys(arguments).length > 0) { %>
+                <% for (const [key, value] of Object.entries(arguments)) {%>
+                    <b><span>(<%= key %>=<%= value %>)</span></b>
+                <% } %>
+            <% } %>
+            
+        </div>
+
+    <br>
+    <br>
+    <input class="btn-1" type="button" value="Back to Homescreen" onclick="goToHome()">
+    </section>
     
-    <% if (Object.keys(arguments).length > 0) { %>
-        <% for (const [key, value] of Object.entries(arguments)) {%>
-            <span>(<%= key %>=<%= value %>) </span>
-        <%} %>
-    <%} %>
-    
-    
+<script>
+    function goToHome() {
+        window.location = "/";
+    }
+</script>
+
 </body>
 </html>
