@@ -14,12 +14,32 @@
     
     <!-- Sections  -->
 
-    <h1>Hier kannst du das Geschenk Nr.<%= giftNum %> freischalten!</h1>
+    <section>
 
-    <form method="POST">
-        <label for="code">Code</label>
-        <input type="text" name="code">
-        <input type="submit" value="submit">
-    </form>
+        <div class="code__container flex-column flex-xy">
+            <h1 class="code__heading">Hier kannst du das Geschenk <u>Nr.<%= giftNum %></u> freischalten!</h1>
+            
+            <div class="code__img_container">
+                <img src="/img/question-mark.png" alt="" class="image-fill">
+            </div>
+
+            <form class="login__form max-widht flex-column flex-xy" method="POST">
+                <input id="code__input" class="text-input-1" type="text" name="code" placeholder="Code">
+                <input id="code__submit" class="btn-1" type="submit" value="Submit Code">
+            </form>
+            <!-- is this a good solution? -->
+        </div>
+
+        <% if (validCode=="false" ) { %>
+            <div class="code__container-secondary flex-colum flex-xy">
+                <p class="feedback-paragraph text-error">
+                    Invalid Code
+                </p>
+            </div>
+            <% } %>
+
+    </section>
+
+    
 </body>
 </html>

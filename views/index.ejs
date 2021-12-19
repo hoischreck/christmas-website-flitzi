@@ -17,38 +17,76 @@
 
     <!-- Sections  -->
 
+    <!-- Welcome Section -->
+    
+    <div class="welcome__main_container flex-xy">
+        <div class="welcome__header_container">
+            <h1>Merry Christmas Flitzi</h1>
+        </div>
+    </div>
+
     <div class="sections__container body-flex-wrapper">
-
-        <!-- Welcome Section -->
-
-        <section class="content__section">
-            <div class="welcome__main_container flex-xy">
-                <div class="welcome__header_container">
-                    <h1>Merry Christmas</h1>
-                </div>
-            </div>
-        </section>
 
         <!-- Intro Section -->
 
         <section class="content__section">
             <div class="intro__main_container flex-column flex-xy">
                 <div class="intro__container_header">
-                    <h3>Frohe Weihnachten Flitzi❤️</h3>
+                    <h3>Frohe Weihnachten ❤️</h3>
                 </div>
                 <div class="intro__container_text">
                     <p class="intro__paragraph important">
-                        Leider können wir dieses Jahr unser erstes Weihnachten nicht zusammen verbringen *trauriger Smiley*.
+                        Leider können wir dieses Jahr unser erstes Weihnachten nicht miteinander verbringen *trauriger Smiley*.
                         <br>
-                        Trotzdem wollte ich etwas besonderes für dich machen, weswegen ich mich dafür entschieden habe dir eine Webiste zu machen.
+                        Trotzdem wollte ich etwas besonderes für dich machen, weswegen ich mich dafür entschieden habe, dir eine Website zu machen.
+                        <br>
+                        Ich hoffe einfach mal, dass das noch niemand für dich gemacht hat.
                         <br> 
+                        <br>
                         Die Website an sich ist gar nicht allzu nützlich, aber sie übernimmt eine fundametale Aufgabe, die ich gerne persönlich übernommen hätte.
                         <br>
                         Sie überbringt dir deine Weihnachtsgeschenke. 
                         <br>
-                        Ich hoffe einfach mal, dass das noch niemand für dich gemacht hat.
+                        Doch halt ein, bevor du dich zu früh freust. Auch wenn heute Weihnachten ist, gibt es nichts umsonst, das ist nunmal die harte Realität die dir seit deinem 18. Lebensjahr bekannt seien sollte.
+                        <br>
+                        Das bedeutet du musst verschiedene Aufgaben erfüllen, um zu erfahren, was der Weihnachtsmann für dich vorbereitet hat. 
+                        <br>
+                        Dennoch kann ich dir soviel schon mal vorweg verraten:
+                        <br>
+                        <br>
+                        Du wirst insgesamt 3 Geschenke erhalten. Dabei musst du in chronologischer Reihenfolge vorgehen, da du jeweils einen Code eingeben musst, um das nächste Geschenk freizuschalten. Alle 3 Geschenke wirst du dann erhalten, wenn wir uns wieder sehen.
+                        <br>
+                        <br>
+                        Zum Schluss noch ein kleiner Hinweis für die Bedienung:
+                        <br>
+                        Über die Menüleiste kannst du jederzeit zwischen allen Ansichten wechseln und alles Weitere ist selbsterklärend.
+
                     </p>
                 </div>
+
+                <div class="flex-row flex-xy present_code__container">
+                    <div class="intro__container_text present_code__text_container">
+                        <p class="intro__paragraph">
+                            Wenn du alles verstanden hast, dann kannst du mit dem ersten Geschenk anfangen.
+                            Drücke dafür auf das Geschenk.
+                            <br>
+                            <b>Der erste Code lautet:</b>
+                        </p>
+                        <div class="present_code__code_container">
+                            <%= user.info.presentCodes[1] %>
+                        </div>
+                    </div>
+                    <div class="present_btn__container">
+                        <a href="/gift1" class="present_btn__anchor">
+                            <div class="present_btn__anchor_container flex-xy">
+                                <img class="image-fill" src="/img/present.png" alt="Geschenk 1">
+                                <div class="present_btn__overlap">Geschenk Nr. 1</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+
             </div>
         </section>
 

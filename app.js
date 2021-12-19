@@ -70,7 +70,7 @@ app.get("/", (req, res) => {
     //console.log("Index.html requested by: " + req.ip);
     if (!authLogin(req, res)) return;
 
-    res.render("index");
+    res.render("index", {user: req.session.user});
     
 })
 
@@ -141,11 +141,12 @@ app.get("/unlock", (req, res) => {
     if (!authLogin(req, res)) return;
 
     var giftNum = req.query[GIFT_NUM_ARG];
+    var validCode = req.query["validCode"]; //todo: outsource ?
     if (!giftNum || giftNum < 1 || giftNum > 3) { // todo: git count may be outsourced
         res.redirect("/");
         return;
     }
-    res.render("unlock", {giftNum});
+    res.render("unlock", { giftNum , validCode });
 })
 
 app.post("/unlock", urlencodedParser, (req, res) => {
@@ -153,11 +154,11 @@ app.post("/unlock", urlencodedParser, (req, res) => {
     var user = req.session.user;
     if (user.info.presentCodes[giftNumber] == req.body.code) {
         myServer.unlockPresent(user.name, giftNumber)
-        req.session.user = myServer.getUserObj(name);
+        req.session.user = myServer.getUserObj(user.name);
         res.redirect(`/gift${giftNumber}`)
 
     } else {
-        res.redirect(`/unlock?${GIFT_NUM_ARG}=${giftNumber}`) //todo: add messaging
+        res.redirect(`/unlock?${GIFT_NUM_ARG}=${giftNumber}&validCode=false`) //todo: add messaging
     }
 })
 
@@ -189,6 +190,7 @@ app.get("/admin/:command", (req, res) => {
     try {
     var result = myCommands.runCommand(command, args);
     if (result.success) {
+        //todo: commands that change user attributes dont update sessions
         argObj.message = "Command executed successfully";
         res.render("valid_entry", argObj);
     } else {

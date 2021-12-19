@@ -4,6 +4,7 @@ html {
     --dark-red: #c90000;
     --white: #ffffff;
     --dark-gray: #131313;
+    --lighter-gray: #272727;
 
     --dark-green: #007000;
     --light-green: #009900;
@@ -31,16 +32,7 @@ body {
 }
 
 section {
-    padding-top: 4rem;
-    padding-bottom: 4rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    text-align: center;
-}
-
-section {
+    margin: 0 0 0 0;
     padding-top: 4rem;
     padding-bottom: 4rem;
     display: flex;
@@ -95,6 +87,86 @@ section {
 
 }
 
+/* Generic elements */
+
+.text-box-1 {
+    background-color: var(--white);
+    width: 50%;
+    padding: 1.5rem;
+    border-radius: 10px;
+    word-wrap: break-word;
+    text-align: left;
+}
+
+.text-box-1-small {
+    background-color: var(--white);
+    width: 30%;
+    padding: 1.5rem;
+    border-radius: 10px;
+    word-wrap: break-word;
+    margin-bottom: 1rem;
+}
+
+.text-error {
+    color: var(--error-red);
+    font-weight: 500;
+    font-size: large;
+}
+
+.btn-1 {
+    background-color: #f1f1f1;
+    font-size: 1rem;
+    font-weight: bold;
+    width: 200px;
+    height: 40px;
+    border-radius: 6px;
+    border: none;
+    /* border: none; */
+}
+.btn-1:hover {
+    background-color: #cfcfcf;
+    border-top: 2px solid #929292;
+    border-left: 2px solid #929292;
+    border-right: 2px solid #929292;
+}
+
+
+.btn-2 {
+    background-color: var(--light-green);
+    font-size: 1rem;
+    font-weight: bold;
+    width: 200px;
+    height: 40px;
+    border-radius: 6px;
+    border: none;
+    /* border: none; */
+}
+.btn-2:hover {
+    background-color: var(--dark-green);
+    border-top: 2px solid #929292;
+    border-left: 2px solid #929292;
+    border-right: 2px solid #929292;
+}
+
+.text-input-1 {
+    font-size: large;
+    font-weight: 600;
+    background-color: #c2c2c2;
+    border: none;
+    text-align: center;
+    border-radius: 5px;
+    width: 75%;
+    height: 35px;
+}
+
+#login__submit {
+    margin-top: 2rem;
+}
+
+.hide {
+    display: none;
+}
+
 .important {
      font-weight: bold;
 }
@@ -122,6 +194,7 @@ section {
     width: 100%;
 }
 
+
 /* Elements */
 
 
@@ -132,10 +205,14 @@ h1 {
 }
 
 .welcome__main_container {
-    margin-top: 3rem;
     background-color: var(--dark-green);
     width: 100%;
     height: 15vh;
+    border-radius: 0 0 50px 50px;
+}
+
+.intro__main_container {
+    margin-top: 5rem;
 }
 
 .intro__container_header {
@@ -151,14 +228,14 @@ h1 {
 .intro__container_text {
     font-size: 1.1rem;
     border-radius: 10px;
-    width: 100%;
+    width: 80%;
     color: #ffffff;
     background-color: var(--dark-gray);
+    margin-bottom: 3rem;
 }
 
 .intro__paragraph {
-    padding: .7rem;
-    
+    padding: .7rem 1.4rem .7rem 1.4rem;
 }
 
 .login__heading {
@@ -186,23 +263,98 @@ h1 {
     max-height: 100%;
 }
 
-.text-input-1 {
-    font-size: large;
-    font-weight: 600;
-    background-color: #c2c2c2;
-    border: none;
-    text-align: center;
-    border-radius: 5px;
-    width: 75%;
-    height: 35px;
+.present_code__container {
+    background-color: var(--dark-gray);
+    padding: 1rem 5rem 1rem 1rem;
+    border-radius: 20px;
+    width: 35%;
 }
 
-#login__submit {
+.present_code__text_container {
+    margin: 0;
+    margin-right: 5rem;
+    text-align: left;
+}
+
+.present_code__code_container {
+    margin-left: 1.4rem;
+    padding: .7rem 1rem .7rem 1rem;
+    text-align: center;
+    background-color: white;
+    color: black;
+    border-radius: 20px;
+}
+
+.present_btn__container {
+    height: 20vh;
+}
+
+.present_btn__overlap {
+    box-sizing: border-box;
+    position: absolute;
+    bottom: 40%;
+    width: 100%;
+    border-radius: 10px;
+    border-color: var(--dark-gray);
+    border: 2px solid black;
+    background-color: #39B449;
+    padding: .3rem 0 .3rem 0;
+
+    transition: all .2s ease-in-out;
+}
+
+.present_btn__overlap:hover {
+    background-color: #1d922d;
+    transform: scale(1.1);
+}
+
+.present_btn__anchor_container {
+    height: 100%;
+    position: relative;
+}
+
+.present_btn__anchor {
+    text-decoration: none;
+    font-weight: bold;
+    color: white;
+}
+
+.present_btn__anchor:hover {
+    color: white;
+}
+
+.code__container {
+    width: 70%;
+    background-color: var(--dark-gray);
+    border-radius: 20px;
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+}
+
+.code__container-secondary {
+    width: 50%;
+    background-color: var(--dark-gray);
+    border-radius: 20px;
     margin-top: 2rem;
 }
 
-.hide {
-    display: none;
+.code__heading {
+    font-size: 2rem;
+    color: var(--white);
+    background-color: var(--lighter-gray);
+    padding: 1rem 1rem 1rem 1rem;
+    margin-top: 1rem;
+    border-radius: 20px;
+}
+
+#code__input {
+    width: 40%;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}  
+
+.code__img_container {
+    height: 40vh;
 }
 
 /* Navleiste */
@@ -299,63 +451,3 @@ h1 {
     float: right;
 }
 
-/* Generic elements */
-
-.text-box-1 {
-    background-color: var(--white);
-    width: 50%;
-    padding: 1.5rem;
-    border-radius: 10px;
-    word-wrap: break-word;
-    text-align: left;
-}
-
-.text-box-1-small {
-    background-color: var(--white);
-    width: 30%;
-    padding: 1.5rem;
-    border-radius: 10px;
-    word-wrap: break-word;
-    margin-bottom: 1rem;
-}
-
-.text-error {
-    color: var(--error-red);
-    font-weight: 500;
-    font-size: large;
-}
-
-.btn-1 {
-    background-color: #f1f1f1;
-    font-size: 1rem;
-    font-weight: bold;
-    width: 200px;
-    height: 40px;
-    border-radius: 6px;
-    border: none;
-    /* border: none; */
-}
-.btn-1:hover {
-    background-color: #cfcfcf;
-    border-top: 2px solid #929292;
-    border-left: 2px solid #929292;
-    border-right: 2px solid #929292;
-}
-
-
-.btn-1-submit {
-    background-color: var(--light-green);
-    font-size: 1rem;
-    font-weight: bold;
-    width: 200px;
-    height: 40px;
-    border-radius: 6px;
-    border: none;
-    /* border: none; */
-}
-.btn-1-submit:hover {
-    background-color: var(--dark-green);
-    border-top: 2px solid #929292;
-    border-left: 2px solid #929292;
-    border-right: 2px solid #929292;
-}

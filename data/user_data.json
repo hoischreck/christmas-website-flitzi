@@ -11,5 +11,18 @@
 			"2": false,
 			"3": false
 		}
+	},
+	"felicitas": {
+		"password": "$2b$10$uRlLMfCM8Q8VOND5DSMhyuh7Tr2SoK58mSaVg1rkNqr0Qtg1hZHz6",
+		"presentCodes": {
+			"1": "Edgar",
+			"2": "gift2",
+			"3": "gift3"
+		},
+		"unlockedGifts": {
+			"1": false,
+			"2": false,
+			"3": false
+		}
 	}
 }
