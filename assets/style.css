@@ -2,8 +2,12 @@
 
 html {
     --dark-red: #c90000;
-    --bright-white: #ffffff;
+    --white: #ffffff;
+    --dark-gray: #131313;
+
     --dark-green: #007000;
+    --light-green: #009900;
+
     
     --error-red: #ff0000;
     --success-green: #00c400;
@@ -15,6 +19,7 @@ body {
     margin: 0;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     background-color: var(--dark-red);
+    line-height: 1.6;
 }
 
 .body-error {
@@ -121,19 +126,83 @@ section {
 
 
 h1 {
-    font-size: 3rem;
-    color: white;
+    font-size: 6rem;
+    color: var(--white);
+    margin: 0 0 0 0;
 }
 
+.welcome__main_container {
+    margin-top: 3rem;
+    background-color: var(--dark-green);
+    width: 100%;
+    height: 15vh;
+}
+
+.intro__container_header {
+    color: var(--white);
+    font-size: 1.7rem;
+    border-radius: 10px;
+    width: 40%;
+    background-color: var(--dark-gray);
+    margin-bottom: 2rem;
+    padding: 0 2rem 0 2rem;
+}
 
 .intro__container_text {
-    border-radius: .2rem;
-    width: 60%;
-    background-color: var(--dark-green);
+    font-size: 1.1rem;
+    border-radius: 10px;
+    width: 100%;
+    color: #ffffff;
+    background-color: var(--dark-gray);
 }
 
 .intro__paragraph {
     padding: .7rem;
+    
+}
+
+.login__heading {
+    color: black;
+    margin: .1rem;
+}
+
+.login__form {
+    margin-top: 1rem;
+}
+
+.login__label {
+    margin-top: 2rem;
+    margin-bottom: .5rem;
+    font-size: large;
+    font-weight: 500;
+}
+
+.login__img_container {
+    height: 50vh;
+}
+
+.image-fill {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.text-input-1 {
+    font-size: large;
+    font-weight: 600;
+    background-color: #c2c2c2;
+    border: none;
+    text-align: center;
+    border-radius: 5px;
+    width: 75%;
+    height: 35px;
+}
+
+#login__submit {
+    margin-top: 2rem;
+}
+
+.hide {
+    display: none;
 }
 
 /* Navleiste */
@@ -205,7 +274,7 @@ h1 {
 }
 
 .footer a {
-    color: var(--bright-white);
+    color: var(--white);
     float: right;
     height: 100%;
     padding: 0 1rem 0 1rem;
@@ -233,7 +302,7 @@ h1 {
 /* Generic elements */
 
 .text-box-1 {
-    background-color: white;
+    background-color: var(--white);
     width: 50%;
     padding: 1.5rem;
     border-radius: 10px;
@@ -242,12 +311,18 @@ h1 {
 }
 
 .text-box-1-small {
-    background-color: white;
+    background-color: var(--white);
     width: 30%;
     padding: 1.5rem;
     border-radius: 10px;
     word-wrap: break-word;
     margin-bottom: 1rem;
+}
+
+.text-error {
+    color: var(--error-red);
+    font-weight: 500;
+    font-size: large;
 }
 
 .btn-1 {
@@ -262,6 +337,24 @@ h1 {
 }
 .btn-1:hover {
     background-color: #cfcfcf;
+    border-top: 2px solid #929292;
+    border-left: 2px solid #929292;
+    border-right: 2px solid #929292;
+}
+
+
+.btn-1-submit {
+    background-color: var(--light-green);
+    font-size: 1rem;
+    font-weight: bold;
+    width: 200px;
+    height: 40px;
+    border-radius: 6px;
+    border: none;
+    /* border: none; */
+}
+.btn-1-submit:hover {
+    background-color: var(--dark-green);
     border-top: 2px solid #929292;
     border-left: 2px solid #929292;
     border-right: 2px solid #929292;

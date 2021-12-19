@@ -1,22 +1,15 @@
 {
 	"ivo": {
-		"code": 1337,
-		"codeUsed": false
-	},
-	"flitzi": {
-		"code": "das ist ein test",
-		"codeUsed": false
-	},
-	"Papa": {
-		"code": "das ist ein Test",
-		"codeUsed": false
-	},
-	"mama": {
-		"code": "test3",
-		"codeUsed": false
-	},
-	"ivo2": {
-		"code": "baum",
-		"codeUsed": false
+		"password": "$2b$10$FkBAvEp//ETH7r798rKhw.i6gffe79wxQNGZJ/oK8Ze3/MsVTR0W2",
+		"presentCodes": {
+			"1": "gift1",
+			"2": "gift2",
+			"3": "gift3"
+		},
+		"unlockedGifts": {
+			"1": false,
+			"2": false,
+			"3": false
+		}
 	}
 }

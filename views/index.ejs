@@ -11,22 +11,9 @@
 
 <body>
 
-    <!-- Navigation Bar todo: put this in to partials--> 
+    <!-- Navigation Bar --> 
 
-    <nav class="navigation-bar">
-        <div class="max-height desktop-nav">
-            <div class="max-height flex-row">
-                <ul>
-                    <li class="nav__item"><a class="navigation__link flex-xy" href=""><span
-                                class="anchor-span">Startseite</span></a></li>
-                    <li class="nav__item"><a class="navigation__link flex-xy" href=""><span
-                                class="anchor-span">Platzhalter 1</span></a></li>
-                    <li class="nav__item"><a class="navigation__link flex-xy" href=""><span
-                                class="anchor-span">Platzhalter 2</span></a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <%- include ('partials/navTop.ejs') %>
 
     <!-- Sections  -->
 
@@ -35,7 +22,7 @@
         <!-- Welcome Section -->
 
         <section class="content__section">
-            <div class="welcome__main_container">
+            <div class="welcome__main_container flex-xy">
                 <div class="welcome__header_container">
                     <h1>Merry Christmas</h1>
                 </div>
@@ -45,12 +32,21 @@
         <!-- Intro Section -->
 
         <section class="content__section">
-            <div class="intro__main_container flex-row">
+            <div class="intro__main_container flex-column flex-xy">
+                <div class="intro__container_header">
+                    <h3>Frohe Weihnachten Flitzi❤️</h3>
+                </div>
                 <div class="intro__container_text">
                     <p class="intro__paragraph important">
-                        Frohe Weihnachten!
-                        Weil wir dieses Jahr Weihnachten leider nicht zusammen verbringen können,
-                        wollte ich dennoch eine kleine Überraschung für dich machen [Name].
+                        Leider können wir dieses Jahr unser erstes Weihnachten nicht zusammen verbringen *trauriger Smiley*.
+                        <br>
+                        Trotzdem wollte ich etwas besonderes für dich machen, weswegen ich mich dafür entschieden habe dir eine Webiste zu machen.
+                        <br> 
+                        Die Website an sich ist gar nicht allzu nützlich, aber sie übernimmt eine fundametale Aufgabe, die ich gerne persönlich übernommen hätte.
+                        <br>
+                        Sie überbringt dir deine Weihnachtsgeschenke. 
+                        <br>
+                        Ich hoffe einfach mal, dass das noch niemand für dich gemacht hat.
                     </p>
                 </div>
             </div>
@@ -64,24 +60,7 @@
 
         <!-- Footer -->
 
-        <footer class="footer">
-
-            <div class="footer__text_container max-height flex-xy">
-                <span class="footer__text"> &copy; Ivo Zilkenat (2021)</span>
-            </div>
-
-            <div class="footer__link_container max-height">
-                <div class="flex-row flex-xy max-height">
-                    <div class="footer__link_anchor_container">
-                        <a class="navigation__link flex-xy" href="">Platzhalter 1</a>
-                    </div>
-                    <div class="footer__link_anchor_container">
-                        <a class="navigation__link flex-xy" href="">Platzhalter 2</a>
-                    </div>
-                </div>
-            </div>
-
-        </footer>
+        <%- include ("partials/footerBottom.ejs") %>
 
     </div>
 

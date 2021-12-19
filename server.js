@@ -1,18 +1,42 @@
 const { throws } = require("assert");
 var fs = require("fs");
+var bcrypt = require("bcrypt");
 
 // todo: user data should not be saved on GitHub
 
-exports.UserData = function UserData(code, codeUsed = false) {
-    this.code = code;
-    this.codeUsed = codeUsed;
+exports.hashPw = function hashPw(password) {
+    return bcrypt.hashSync(password, 10);
+}
+
+exports.checkPw = function checkPw(pw, encrypted) {
+    return bcrypt.compareSync(pw, encrypted);
+}
+
+exports.User = function User(name, userDataObj) {
+    this.name = name;
+    this.info = userDataObj
+} 
+
+exports.UserData = function UserData(password) {
+    this.password = exports.hashPw(password);
+    this.presentCodes = {
+        1: "gift1",
+        2: "gift2",
+        3: "gift3",
+    }
+    this.unlockedGifts = {
+        1: false,
+        2: false,
+        3: false
+    }
 }
 
 exports.MyServer = class MyServer {
     static USER_DATA_PATH = __dirname + "/data/user_data.json";
     static SERVER_MSG_LOG_PREFIX = "[SERVER]: ";
-    static SERVER_WARNING_LOG_PREFIX = "![SERVER-Warning]: ";
-    static SERVER_ERR_LOG_PREFIX = "!![SERVER-Error]: ";
+    static SERVER_WARNING_LOG_PREFIX = "[!SERVER-Warning]: ";
+    static SERVER_ERR_LOG_PREFIX = "[!!SERVER-Error]: ";
+    static PRESENT_COUNT = 3;
 
     constructor(app) {
         this.app = app;
@@ -73,6 +97,35 @@ exports.MyServer = class MyServer {
         this._updateData();
     }
 
+    verifyUser(name, pw) {
+        if (name in this.users && exports.checkPw(pw, this.users[name].password)) {
+            return true;
+        }
+        return false;
+    }
+
+    setPresentCodes(name, ...codes) {
+        for (i = 1; i <= MyServer.PRESENT_COUNT + 1; i++) {
+            this.users[name].presentCodes[i] = codes[i-1];
+        }
+        this._updateData(); 
+        
+    }
+
+    unlockPresent(name, presentId) {
+        this.users[name].unlockedGifts[presentId] = true;
+        this._updateData();
+    }
+
+    lockPresent(name, presentId) {
+        this.users[name].unlockedGifts[presentId] = false;
+        this._updateData();
+    }
+
+    getUserObj(name) {
+        return new exports.User(name, this.users[name]);
+    }
+
     _readUsers() {
         let data = fs.readFileSync(MyServer.USER_DATA_PATH, "utf8")
         var users = data.length <= 0 ? {} : JSON.parse(data);
@@ -86,6 +139,7 @@ exports.MyServer = class MyServer {
 
 }
 
+// ADMIN - API
 
 //todo: add error handling -> e.g. delete entry doesnt exist, etc.
 //todo: add general help functionaltiy
@@ -112,8 +166,6 @@ exports.CommandManager = class CommandManager {
     }
 }
 
-//todo: general command class
-
 function argValidator(desiredArgObj, argList) {
     for (i in argList) {
         if (!(argList[i] in desiredArgObj)) {
@@ -133,37 +185,52 @@ function command(func, ...desiredArgs) {
             missing_args: desiredArgs
         };
         var res = func(server, args);
-        if (res === true) { return {
-            success: true,
-        }} else {return {
-            success: false
-        }}
+        if (res === true) {
+            return {
+                success: true,
+            }
+        } else {
+            return {
+                success: false
+            }
+        }
     }
     return run;
 }
 
 // this function is not not needed if server input cannot be made
-exports.addUserCommandTmp = command((server, args) => {
-    
-    server.addUser(args.name, new exports.UserData(args.code));
+exports.addUserCommandTmp = command((server, args) => { 
+    server.addUser(args.name, new exports.UserData(args.password));
     return true;
-}, "name", "code")
+}, "name", "password")
 
 
 exports.addUserCommand = command((server, args) => {
-
-    server.addUserUpdate(args.name, new exports.UserData(args.code));
+    server.addUserUpdate(args.name, new exports.UserData(args.password));
     return true;
-}, "name", "code")
+}, "name", "password")
 
-exports.deleteUserCommand = command((server, args) => {
-    
+exports.deleteUserCommand = command((server, args) => {   
     server.deleteUserUpdate(args.name);
     return true;
 }, "name")
 
 exports.saveUsersCommand = command((server, args) => {
-    
     server.saveUsers();
     return true;
 })
+
+exports.setPresentCodesCommand = command((server, args) => {
+    server.setPresentCodes(args.name, args.code1, args.code2, args.code3);
+    return true;
+}, "name", "code1", "code2", "code3")
+
+exports.unlockPresentCommand = command((server, args) => {
+    server.unlockPresent(args.name, args.present);
+    return true;
+}, "name", "present")
+
+exports.lockPresentCommand = command((server, args) => {
+    server.lockPresent(args.name, args.present);
+    return true;
+}, "name", "present")

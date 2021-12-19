@@ -4,10 +4,42 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css" type="text/css">
+    <link rel="stylesheet" href="/style.css" type="text/css">
     <title>Login</title>
 </head>
 <body>
+
+    <section>
+
+        <div class="text-box-1-small flex-column flex-xy">
+            <h1 class="login__heading">Login</h1>
+        
+            <form class="login__form max-widht flex-column flex-xy" method="POST">
+            
+                <label class="login__label" for="name">Name</label>
+                <input class="text-input-1" type="text" name="name">
+            
+                <label class="login__label" for="password">Password</label>
+                <input class="text-input-1" type="password" name="password">
+            
+                <input id="login__submit" class="btn-1-submit" type="submit" value="Login">
+
+            </form>
+                <!-- is this a good solution? -->
+                <% if (validLogin == "false") { %>
+                    <p class="feedback-paragraph text-error">
+                        Invalid Credentials
+                    </p>
+                <% } %>
+                
+        </div>
+
+        <div class="login__img_container">
+            <img class="image-fill" src="/img/christmas_tree.png" alt="Weihnachtsbaum mit Weihnachtsmann">
+        </div>
+    
+    </section>
+    
 
 </body>
 </html>
