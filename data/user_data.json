@@ -7,7 +7,7 @@
 			"3": "gift3"
 		},
 		"unlockedGifts": {
-			"1": false,
+			"1": true,
 			"2": false,
 			"3": true
 		},
