@@ -1,6 +1,6 @@
 {
 	"ivo": {
-		"password": "$2b$10$T.2DkTmIY5Vj7IsgVrgdVOOCK5fSnAdpGFa3wumEcGCUg2am2a2dC",
+		"password": "$2b$10$ezVGPhmXFPFJIGjQnyXwHuDQqYRYtYKEDVvwwxTAKZEzxHWBCXHaK",
 		"presentCodes": {
 			"1": "gift1",
 			"2": "gift2",
@@ -19,33 +19,10 @@
 					"finished": {
 						"1": true,
 						"2": true,
-						"3": true
-					}
-				}
-			}
-		}
-	},
-	"thomas": {
-		"password": "$2b$10$tPsWvx5hDTbLy6tLP3lsS.7Y67onl8aZ9jRldA/AStSONmZjFBkwe",
-		"presentCodes": {
-			"1": "gift1",
-			"2": "gift2",
-			"3": "gift3"
-		},
-		"unlockedGifts": {
-			"1": false,
-			"2": false,
-			"3": false
-		},
-		"additionalPresentData": {
-			"1": {},
-			"2": {},
-			"3": {
-				"challenges": {
-					"finished": {
-						"1": false,
-						"2": false,
-						"3": false
+						"3": true,
+						"4": true,
+						"5": true,
+						"6": true
 					}
 				}
 			}

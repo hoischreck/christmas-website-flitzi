@@ -43,7 +43,10 @@ exports.UserData = function UserData(password) {
                 finished: {
                     1: false,
                     2: false,
-                    3: false
+                    3: false,
+                    4: false,
+                    5: false,
+                    6: false
                 }
             }
         },
@@ -192,13 +195,20 @@ exports.MyServer = class MyServer {
 //todo: add error handling -> e.g. delete entry doesnt exist, etc.
 //todo: add general help functionaltiy
 exports.CommandManager = class CommandManager {
-    constructor(server) {
+    constructor(server, addHelpCommand=true) {
         this.server = server;
         this.commands = {};
+        if (addHelpCommand) {
+            this.addCommand("help", exports.helpCommand, true);
+        }
     };
 
-    addCommand(callString, commandFunction) {
-        this.commands[callString] = commandFunction;
+    addCommand(callString, commandFunction, addCManager=false) {
+        if (addCManager) {
+            this.commands[callString] = commandFunction(this);
+        } else {
+            this.commands[callString] = commandFunction;
+        }
     }
 
     deleteCommand(callString) {
@@ -249,6 +259,21 @@ exports.command = (func, ...desiredArgs) => {
 }
 
 // this function is not not needed if server input cannot be made
+exports.helpCommand = (commandManager) => {
+    var command = exports.command((server, args) => {
+        var rString = "";
+        for (command in commandManager.commands) {
+            rString += `(${command}) `;
+        }
+        return {
+            completed: true,
+            result: rString 
+        }
+    })
+    return command;
+}
+
+
 exports.addUserCommandTmp = exports.command((server, args) => { 
     server.addUser(args.name, new exports.UserData(args.password));
     return {

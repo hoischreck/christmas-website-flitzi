@@ -64,6 +64,7 @@ function authLogin(req, res) {
         res.redirect("/login");
         return false;
     }
+    req.session.user = myServer.getUserObj(req.session.name);
     return true;
 }
 
@@ -89,8 +90,7 @@ app.post("/login", urlencodedParser, (req, res) => {
 
     if (validAuth) {
         req.session.authenticated = true;
-        var name = req.body.name;
-        req.session.user = myServer.getUserObj(name);
+        req.session.name = req.body.name;
         res.redirect("/");
     } else {
         res.redirect("/login?validLogin=false"); //add error message
@@ -252,15 +252,15 @@ wss.on("connection", (socket) => {
 // })
 
 function verfiyChallenge(userName, challengeNum) {
-    var client = myServer.getClient(userName);
-    var data = {
-        type: "verifyChallenge",
-        chlNum: challengeNum
-    }
-    client.send(JSON.stringify(data));
     if (myServer.users[userName].additionalPresentData[3].challenges.finished[challengeNum] === true) {
         return false;
     } else {
+        var client = myServer.getClient(userName);
+        var data = {
+            type: "verifyChallenge",
+            chlNum: challengeNum
+        }
+        client.send(JSON.stringify(data));
         myServer.users[userName].additionalPresentData[3].challenges.finished[challengeNum] = true;
         myServer._updateData();
         return true;
@@ -277,7 +277,20 @@ var verifyChallengeCommand = server.command((server, args) => {
         result: `verified challenge Nr.${args.num} for user: ${args.name}`
     }
 }, "name", "num")
+
+var checkChallengeProgressCommand = server.command((server, args) => {
+    var rString = "";
+    for (i in myServer.users[args.name].additionalPresentData[3].challenges.finished) {
+        rString += `(Challenge_${i}: ${myServer.users[args.name].additionalPresentData[3].challenges.finished[i]}) `
+    }
+    return {
+        completed: true,
+        result: rString
+    }
+}, "name")
+
 myCommands.addCommand("verifyChallenge", verifyChallengeCommand);
+myCommands.addCommand("checkChallengeProgress", checkChallengeProgressCommand);
 
 // start server
 myServer.listen(PORT);

@@ -2,6 +2,7 @@
 
 html {
     --dark-red: #c90000;
+    --darker-red: #8b0000;
     --white: #ffffff;
     --dark-gray: #131313;
     --lighter-gray: #272727;
@@ -160,6 +161,17 @@ section {
     border-right: 2px solid #929292;
 }
 
+.btn-3 {
+    background-color: #f1f1f1;
+    font-size: 1rem;
+    font-weight: bold;
+    width: 200px;
+    height: 40px;
+    border-radius: 6px;
+    border: none;
+    /* border: none; */
+}
+
 .text-input-1 {
     font-size: large;
     font-weight: 600;
@@ -206,6 +218,12 @@ section {
     width: 100%;
 }
 
+.container-secondary {
+    background-color: var(--darker-red);
+    padding: 2rem 0 2rem 0;
+    width: 60%;
+    border-radius: 20px;
+}
 
 /* Elements */
 
@@ -225,6 +243,7 @@ h1 {
 
 .intro__main_container {
     margin-top: 5rem;
+    width: 90%;
 }
 
 .intro__container_header {
@@ -369,6 +388,10 @@ h1 {
     height: 40vh;
 }
 
+#present_3__text_container {
+    width: 90%;
+}
+
 .challenge__heading {
     font-weight: bolder;
     margin-bottom: 1.5rem;
@@ -377,8 +400,8 @@ h1 {
 
 .challenge__container {
     position: relative;
-    margin-top: 2rem;
-    width: 40%;
+    margin-bottom: 2rem;
+    width: 80%;
     min-height: 20vh;
     border-radius: 20px;
     background-color: white;
@@ -417,6 +440,60 @@ h1 {
 
 .challenge__status {
 
+}
+
+.present_reveal__container {
+    color: var(--white);
+    width: 85%;
+    border-radius: 10px;
+    background-color: var(--dark-green);
+}
+
+.present_reveal__paragraph {
+    padding: .5rem .6rem .5rem .6rem;
+    margin: 1.2rem 1rem 1.2rem 1rem;
+    font-weight: bold;
+    background-color: var(--light-green);
+    border-radius: 10px;
+}
+
+.present_reveal__btn {
+    margin: 1rem 0 3rem 0;
+    width: 40%;
+    height: 70px;
+    font-size: 1.8rem;
+    color: #5c5c5c;
+}
+
+.present_reveal__btn-blocked {
+    background-color: #333333;
+    border-top: 6px solid #292929;
+    border-left: 6px solid #292929;
+    border-right: 6px solid #292929;
+    
+}
+
+.present_reveal__btn-blocked:hover {
+    background-color: #333333;
+    color: #aaaaaa;
+    border-top: 6px solid #292929;
+    border-left: 6px solid #292929;
+    border-right: 6px solid #292929;
+}
+
+.present_reveal-animation {
+    animation: fadeIn 500ms ease-out backwards;
+}
+
+@keyframes fadeIn {
+    from {
+        transform: translateY(-250px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0px);
+        opacity: 1;
+    }
 }
 
 /* Navleiste */
