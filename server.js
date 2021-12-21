@@ -18,6 +18,7 @@ exports.User = function User(name, userDataObj) {
     this.info = userDataObj
 } 
 
+// different format would be better, but change would be to dangerous       
 exports.UserData = function UserData(password) {
     this.password = exports.hashPw(password);
     this.presentCodes = {
@@ -30,6 +31,24 @@ exports.UserData = function UserData(password) {
         2: false,
         3: false
     }
+    this.additionalPresentData = {
+        1: {
+
+        },
+        2: {
+
+        },
+        3: {
+            challenges: {
+                finished: {
+                    1: false,
+                    2: false,
+                    3: false
+                }
+            }
+        },
+    }
+
 }
 
 exports.MyServer = class MyServer {
@@ -43,6 +62,8 @@ exports.MyServer = class MyServer {
         this.app = app;
         this.server = require("http").createServer(app);
         this.wss = new webSocket.Server({ server: this.server });
+        this.clients = {};
+        
         this.users = this._readUsers();
     }
 
@@ -87,6 +108,22 @@ exports.MyServer = class MyServer {
         });
     }
 
+    addClient(identifier, socket) {
+        this.clients[identifier] = socket;
+    }
+  
+    getClient(identifier) {
+        if (this.clients.hasOwnProperty(identifier)) {
+            return this.clients[identifier];
+        } else {
+            throw new Error(`Client '${identifier}' does not exist`);
+        }
+    }
+
+    clientCount() {
+        return Object.keys(this.clients).length;
+    }
+
     // User control
 
     addUser(name, userInfoObject) {
@@ -116,7 +153,7 @@ exports.MyServer = class MyServer {
     }
 
     setPresentCodes(name, ...codes) {
-        for (i = 1; i <= MyServer.PRESENT_COUNT + 1; i++) {
+        for (i = 1; i < MyServer.PRESENT_COUNT + 1; i++) {
             this.users[name].presentCodes[i] = codes[i-1];
         }
         this._updateData(); 
@@ -188,7 +225,7 @@ function argValidator(desiredArgObj, argList) {
 
 // Update-Command instantly change changes, but data must be reloaded
 
-function command(func, ...desiredArgs) {
+exports.command = (func, ...desiredArgs) => {
     function run(server, args) {
         var validArgs = argValidator(args, desiredArgs);
         if (!validArgs) return {
@@ -196,13 +233,15 @@ function command(func, ...desiredArgs) {
             missing_args: desiredArgs
         };
         var res = func(server, args);
-        if (res === true) {
+        if (res.completed === true) {
             return {
                 success: true,
+                result: res.result
             }
         } else {
             return {
-                success: false
+                success: false,
+                result: res.result
             }
         }
     }
@@ -210,38 +249,75 @@ function command(func, ...desiredArgs) {
 }
 
 // this function is not not needed if server input cannot be made
-exports.addUserCommandTmp = command((server, args) => { 
+exports.addUserCommandTmp = exports.command((server, args) => { 
     server.addUser(args.name, new exports.UserData(args.password));
-    return true;
+    return {
+        completed: true,
+        result: `Added User (temporarily): ${args.name}`
+    };
 }, "name", "password")
 
 
-exports.addUserCommand = command((server, args) => {
+exports.addUserCommand = exports.command((server, args) => {
     server.addUserUpdate(args.name, new exports.UserData(args.password));
-    return true;
+    return {
+        completed: true,
+        result: `Added User: ${args.name} (pw: ${args.password})`
+    };
 }, "name", "password")
 
-exports.deleteUserCommand = command((server, args) => {   
+exports.deleteUserCommand = exports.command((server, args) => {   
     server.deleteUserUpdate(args.name);
-    return true;
+    return {
+        completed: true,
+        result: `Deleted User: ${args.name}`
+    };
 }, "name")
 
-exports.saveUsersCommand = command((server, args) => {
+exports.saveUsersCommand = exports.command((server, args) => {
     server.saveUsers();
-    return true;
+    return {
+        completed: true,
+        result: `Saved all user data`
+    };
 })
 
-exports.setPresentCodesCommand = command((server, args) => {
+exports.setPresentCodesCommand = exports.command((server, args) => {
     server.setPresentCodes(args.name, args.code1, args.code2, args.code3);
-    return true;
+    return {
+        completed: true,
+        result: `Set present codes for: ${args.name} (code 1: ${args.code1}) (code 2: ${args.code2}) (code 3: ${args.code3})`
+    };
 }, "name", "code1", "code2", "code3")
 
-exports.unlockPresentCommand = command((server, args) => {
+exports.unlockPresentCommand = exports.command((server, args) => {
     server.unlockPresent(args.name, args.present);
-    return true;
+    return {
+        completed: true,
+        result: `Unlocked present ${args.present} for user ${args.name}`
+    };
 }, "name", "present")
 
-exports.lockPresentCommand = command((server, args) => {
+exports.lockPresentCommand = exports.command((server, args) => {
     server.lockPresent(args.name, args.present);
-    return true;
+    return {
+        completed: true,
+        result: `Locked present ${args.present} for user ${args.name}`
+    };
 }, "name", "present")
+
+// client commands
+
+exports.getActiveClients = exports.command((server, args) => {
+    var clients = server.clients;
+    var rString = "";
+    var i = 1;
+    for (user in clients) {
+        rString += `(${i}: ${user})`;
+        i++;
+    }
+    return {
+        completed: true,
+        result: `Clients(${server.clientCount()}): ` + rString
+    }
+})

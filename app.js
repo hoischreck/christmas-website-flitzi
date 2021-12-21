@@ -3,7 +3,7 @@ var bodyParser = require("body-parser");
 var session = require("express-session");
 
 const { MyServer, addUserCommandUpt } = require("./server");
-const { json } = require("body-parser");
+const { json, raw } = require("body-parser");
 const { WebSocketServer } = require("ws");
 
 var inputAsync = require(__dirname + "/asyncInput.js");
@@ -38,6 +38,7 @@ myCommands.addCommand("deleteUser", server.deleteUserCommand);
 myCommands.addCommand("setPresentCodes", server.setPresentCodesCommand);
 myCommands.addCommand("unlockPresent", server.unlockPresentCommand);
 myCommands.addCommand("lockPresent", server.lockPresentCommand);
+myCommands.addCommand("getClients", server.getActiveClients);
 
 //Data-instantiation finished
 myServer.log("Data-instantiation finished");
@@ -132,8 +133,7 @@ app.get("/gift3", (req, res) => {
     if (!authLogin(req, res)) return;
     if (!authGiftUnlock(req, res, 3)) return;
 
-    var args = {};
-    res.render("gift3_book");
+    res.render("gift3_book", {user: req.session.user});
 
 })
 
@@ -192,14 +192,19 @@ app.get("/admin/:command", (req, res) => {
     var result = myCommands.runCommand(command, args);
     if (result.success) {
         //todo: commands that change user attributes dont update sessions
-        argObj.message = "Command executed successfully";
+        argObj.message = "Command executed successfully: " + result.result;
         res.render("valid_entry", argObj);
     } else {
-        argObj.message = "[Command failed] Arguments needed: ";
-        for (i in result.missing_args) {
-            argObj.message += `>${result.missing_args[i]} `;
+        if (result.hasOwnProperty("missing_args")) {
+            argObj.message = "[Command failed] Arguments needed: ";
+            for (i in result.missing_args) {
+                argObj.message += `>${result.missing_args[i]} `;
+            }
+            res.render("invalid_entry", argObj);
+        } else {
+            argObj.message = "[Command failed] The command could not succeed: " + result.result;
+            res.render("invalid_entry", argObj);
         }
-        res.render("invalid_entry", argObj);
     }
 
     } catch (e) {
@@ -224,15 +229,58 @@ process.on("SIGINT", () => {
 var wss = myServer.wss;
 
 wss.on("connection", (socket) => {
-    myServer.log("new client has connected: " + socket);
-    socket.on("message", (data) => {
-        myServer.log("received: " + data + " - from: " + socket);
+    socket.on("message", (rawData) => {
+        var data = JSON.parse(rawData.toString());
+        switch(data.type) {
+            case "newUser":
+                socket.userName = data.userName;
+                socket.date = Date(data.date);
+                myServer.addClient(socket.userName, socket)
+                break;
+        }  
     })
 })
 
+// wss.on("close", (socket) => {
+//     console.log("closing");
+//     for (i in clients) {
+//         if (clients[i] == socket) {
+//             delete clients[i];
+//             return;        
+//         }
+//     }
+// })
+
+function verfiyChallenge(userName, challengeNum) {
+    var client = myServer.getClient(userName);
+    var data = {
+        type: "verifyChallenge",
+        chlNum: challengeNum
+    }
+    client.send(JSON.stringify(data));
+    if (myServer.users[userName].additionalPresentData[3].challenges.finished[challengeNum] === true) {
+        return false;
+    } else {
+        myServer.users[userName].additionalPresentData[3].challenges.finished[challengeNum] = true;
+        myServer._updateData();
+        return true;
+    } 
+    
+}
+
+var verifyChallengeCommand = server.command((server, args) => {
+    if (!verfiyChallenge(args.name, args.num)) {
+        throw new Error(`Challenge Nr.${args.num} was already verified`);
+    }
+    return {
+        completed: true,
+        result: `verified challenge Nr.${args.num} for user: ${args.name}`
+    }
+}, "name", "num")
+myCommands.addCommand("verifyChallenge", verifyChallengeCommand);
+
 // start server
 myServer.listen(PORT);
-
 // ask for shutdown save (async input)
-var saveBeforeShutdown = inputAsync.getYorN("Shutdown ([Y]es-save/[N]o-save)\n");
-saveBeforeShutdown.then((state) => {myServer.shutdown(save=state)});
+// var saveBeforeShutdown = inputAsync.getYorN("Shutdown ([Y]es-save/[N]o-save)\n");
+// saveBeforeShutdown.then((state) => {myServer.shutdown(save=state)});

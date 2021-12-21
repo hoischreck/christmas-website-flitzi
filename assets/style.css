@@ -54,11 +54,23 @@ section {
     justify-content: center;
 }
 
+.flex-x {
+    display: flex;
+    justify-content: center;
+}
+
+.flex-y {
+    display: flex;
+    align-items: center;
+}
+
 .flex-xy {
     display: flex;
     align-items: center;
     justify-content: center;
 }
+
+
 
 @media (max-width: 1366px) {
 
@@ -355,6 +367,56 @@ h1 {
 
 .code__img_container {
     height: 40vh;
+}
+
+.challenge__heading {
+    font-weight: bolder;
+    margin-bottom: 1.5rem;
+    margin-top: .1rem;
+}
+
+.challenge__container {
+    position: relative;
+    margin-top: 2rem;
+    width: 40%;
+    min-height: 20vh;
+    border-radius: 20px;
+    background-color: white;
+    word-wrap: break-word;
+}
+
+.challenge__unfinished {
+
+}
+
+.challenge__finished {
+    background-color: var(--success-green);
+}
+
+.challenge__paragraph {
+    padding: .3rem .6rem .3rem .6rem;
+    margin: 0 1rem 0 1rem;
+    font-weight: bold;
+    background-color: #d6d6d6;
+    border-radius: 10px;
+}
+
+.challenge__finished-text {
+    background-color: #00a315;
+}
+
+.challenge__container_status {
+    position: absolute;
+    bottom: 0;
+    font-size: .75rem;
+    left: 0;
+    right: 0;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.challenge__status {
+
 }
 
 /* Navleiste */
