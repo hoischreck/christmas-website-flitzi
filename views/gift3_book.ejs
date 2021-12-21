@@ -16,5 +16,27 @@
     <!-- Sections  -->
 
     <h1>Geschenk 3</h1>
+
+    <input onclick="sendMsg('test')" class="btn-1" type="button" value="Test">
+
+<script>
+
+    const socket = new WebSocket("ws://localhost:3000");
+
+    console.log("test");
+
+    socket.addEventListener("open", (event) => {
+        console.log("connected to server");
+    })
+
+    socket.addEventListener("message", (event) => {
+        console.log("message from server: " + event.data);
+    })
+
+    function sendMsg(content) {
+        socket.send(content);
+    }
+
+</script>
 </body>
 </html>

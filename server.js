@@ -1,6 +1,7 @@
 const { throws } = require("assert");
 var fs = require("fs");
 var bcrypt = require("bcrypt");
+var webSocket = require("ws");
 
 // todo: user data should not be saved on GitHub
 
@@ -40,6 +41,8 @@ exports.MyServer = class MyServer {
 
     constructor(app) {
         this.app = app;
+        this.server = require("http").createServer(app);
+        this.wss = new webSocket.Server({ server: this.server });
         this.users = this._readUsers();
     }
 
@@ -74,6 +77,14 @@ exports.MyServer = class MyServer {
     addAppControl(controler) {
         controler(this.app);
         //todo: use a list of active controllers, also for server controllers?
+    }
+
+    listen(port, msg=true) {
+        this.server.listen(port, () => {
+            if (msg) {
+                this.log("Listening on port: " + port);
+            }
+        });
     }
 
     // User control

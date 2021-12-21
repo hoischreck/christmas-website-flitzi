@@ -4,6 +4,7 @@ var session = require("express-session");
 
 const { MyServer, addUserCommandUpt } = require("./server");
 const { json } = require("body-parser");
+const { WebSocketServer } = require("ws");
 
 var inputAsync = require(__dirname + "/asyncInput.js");
 var server = require(__dirname + "/server.js");
@@ -219,9 +220,18 @@ process.on("SIGINT", () => {
     server.shutdown();
 })
 
+// configure webSocket
+var wss = myServer.wss;
+
+wss.on("connection", (socket) => {
+    myServer.log("new client has connected: " + socket);
+    socket.on("message", (data) => {
+        myServer.log("received: " + data + " - from: " + socket);
+    })
+})
+
 // start server
-app.listen(PORT);
-myServer.log("Listening on port: " + PORT);
+myServer.listen(PORT);
 
 // ask for shutdown save (async input)
 var saveBeforeShutdown = inputAsync.getYorN("Shutdown ([Y]es-save/[N]o-save)\n");
