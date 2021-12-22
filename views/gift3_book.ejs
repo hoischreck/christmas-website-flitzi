@@ -144,7 +144,8 @@
 
 <script>
 
-    const socket = new WebSocket("ws://" + window.location.host); // use ws or wss protocol?
+    //const socket = new WebSocket("ws://" ); // use ws or wss protocol?
+    const socket = new WebSocket("ws://" + window.location.href.split("//")[1]);
 
     const challengePrefix = "challenge";
     const challengeStatusClass = "challenge__status";
@@ -180,6 +181,7 @@
             var btn = document.querySelector("." + presentRevealBtnClass);
             if (btn.classList.contains(presentRevealBtnBlockClass)) {
                 btn.classList.remove(presentRevealBtnBlockClass);
+                //socket.close(); does not invoke server handler?
             } 
         }
     }

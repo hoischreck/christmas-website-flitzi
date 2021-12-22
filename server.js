@@ -111,8 +111,18 @@ exports.MyServer = class MyServer {
         });
     }
 
-    addClient(identifier, socket) {
+    addClient(identifier, socket, forceNew = false) {
+        if (forceNew) {
+            if (this.clients.hasOwnProperty(identifier)) {
+                // closes an existing websocket connection
+                this.closeClient(identifier);
+            }
+        }
         this.clients[identifier] = socket;
+    }
+
+    closeClient(identifier) {
+        this.clients[identifier].close();
     }
   
     getClient(identifier) {

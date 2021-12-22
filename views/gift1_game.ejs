@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/style.css" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <title>Geschenk Nr.1</title>
 </head>
 <body>
@@ -15,8 +16,257 @@
     
     <!-- Sections  -->
 
-    <h1>Geschenk 1</h1>
+<section>
+
+    <div class="intro__container_header">
+        Geschenk 1
+    </div>
+
+    <div class="container-secondary flex-column flex-xy">
+        <div class="intro__container_text" id="present_3__text_container">
+            <p class="intro__paragraph">
+                Du nimmst dich also der Geschenkesuche an? Dann wünsche ich dir von hier an viel Spaß und Vergnügen - einen Weg zurück gibt es nicht.
+                <br>
+                <br>
+                Deine erste Herausforderung wird es sein, ein Spiel zu spielen, dass weit über aller Berge und Täler bekannt ist.
+                Ein Spiel das seit jahrtausenden gespielt wird. Es ist nicht Rommé, aber es ist <b>fast</b> identisch. 
+                <br>
+                Gesucht ist ein Kartenspiel, das große Ähnlichkeit mit UNO hat.
+                <br>
+                Was wird es wohl sein?
+            </p>
+        </div>
+        <!-- Add input here, so that user has to enter "Mau Mau" -->
+        
+        
+        <!-- Game of Romme -->
+    </div>
+
+    
+    <div class="container-secondary flex-column flex-xy lobby__container">
+
+        <div class="lobby__input_container">
+            <label for="joinLobby"></label>
+            <input class="text-input-1" type="text" placeholder="join code" name="joinLobby"> 
+            <input class="btn-1" type="button" value="join lobby" onclick="joinLobby()">
+        
+            <p id="couldNotJoin" class="feedback-paragraph text-error hide">
+                Code does not exist
+            </p>
+        </div>
+
+        <div class="lobby__input_container">
+            <label for="createLobby"></label>
+            <input class="text-input-1" type="text" placeholder="create new lobby code" name="createLobby">
+            <input class="btn-1" type="button" value="create lobby" onclick="createNewLobby()">
+            
+            <p id="addedLobby" class="feedback-paragraph text-success hide">
+                Sucessfully added lobby
+            </p>
+
+            <p id="codeAlreadyExists" class="feedback-paragraph text-error hide">
+                Code already exists
+            </p>
+        </div>
+
+        
+
+    </div>
+
+    <div class="container-secondary flex-xy joined_lobby__container_main hide">
+        <div class="flex-column flex-xy intro__container_text joined_lobby__container">
+            <h2 class="challenge__heading">
+                MauMau-Lobby (2 Spieler)
+            </h2>
+            <div class="joined_lobby_info__container">
+            </div>
+            <div class="joined_lobby_ready__container flex-column flex-xy">
+                <input id="joined_lobby_ready__btn" class="btn-1 btn-ready" type="button" value="Bereit zum spielen">
+                <span id="playerReady" class="challenge__status">
+                    <b>Spieler bereit: </b>
+                    m/n
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- <h2>Spielersuche</h2> -->
+
+    <!-- <div class="container-secondary flex-xy flex-column player_search__container">
+
+    </div> -->
 
 
+<script>
+
+    const playerSearchContainerClass = "player_search__container";
+    const playerDivClass = "player_search_player__container";
+
+    const maxPlayerCount = 2;
+
+    const socket = new WebSocket("ws://" + window.location.href.split("//")[1]);
+
+    const user = JSON.parse('<%- JSON.stringify(user) %>');
+
+    socket.addEventListener("open", (event) => {
+        socket.send(JSON.stringify({
+                type: "newUser",
+                presentNum: 1,
+                userName: user.name,
+                date: Date.now()
+            }));
+    
+        socket.send(JSON.stringify({
+                type: "joinMauMauPlayerSearch",
+            }));
+    })
+
+    // Lobby-handling
+    socket.addEventListener("message", (event) => {
+        let data = JSON.parse(event.data);
+        switch (data.type) {
+            case "addedLobby":
+                displaySuccessfullyAddedLobby();
+                break;
+            case "codeAlreadyExists":
+                displayCodeAlreadyExists();
+                break;
+            case "couldNotJoin":
+                displayCouldNotJoin();
+                break;
+
+            case "joinedLobby":
+                let players = [];
+                for (let i in data.players) {
+                    players.push(data.players[i].name);
+                }
+                displayJoinedLobby(
+                    lobbyCode = data.code,
+                    playerList = players,
+                    lobbySize = data.lobbySize,
+                    readyCount = data.readyCount
+                );
+                break;
+        }
+    })
+
+    // create new lobby
+    function createNewLobby() {
+        let code = $("input[name='createLobby']").val(); //.replace(" ", "-")
+        if (!validCode(code)) {
+            return; // return some sort of error feedback
+        }
+        socket.send(JSON.stringify({
+            type: "newLobby",
+            code: code,
+            maxPlayers: maxPlayerCount
+        }));
+    }
+
+    // e.g. dont allow empty codes 
+    function validCode(code) {
+        return true;
+    }
+
+    // join lobby
+    function joinLobby() {
+        let code = $("input[name='joinLobby']").val();
+        socket.send(JSON.stringify({
+            type: "joinLobby",
+            playerName: user.name,
+            lobbyCode: code
+        }))
+    }
+
+    function displayJoinedLobby(lobbyCode, playerList, lobbySize, readyCount) {
+        console.log("join update");
+        let lobby = $(".lobby__container");
+        if (!lobby.hasClass("hide")) {
+            lobby.addClass("hide");
+        }
+        let joinedLobby = $(".joined_lobby__container_main");
+        if (joinedLobby.hasClass("hide")) {
+            joinedLobby.removeClass("hide");
+        }
+        $(".joined_lobby_info__container").html(
+            `
+            <b>Code: </b>${lobbyCode}
+            <br>
+            <b>Spieler: </b>${JSON.stringify(playerList)}
+            `
+        )
+        $("#playerReady").html(
+            `
+            Bereit: ${readyCount}/${lobbySize}
+            `
+        )
+
+    }   
+
+    function leaveLobby() {
+
+    }
+
+    function displayLeavingLobby() {
+
+    }
+
+    function displayCodeAlreadyExists() {
+        let element1 = $("#codeAlreadyExists");
+        if (element1.hasClass("hide")) {
+            element1.removeClass("hide");
+        }
+        let element2 = $("#addedLobby");
+        if (!element2.hasClass("hide")) {
+            element2.addClass("hide");
+        }
+    }
+
+    function displaySuccessfullyAddedLobby() {
+        let element1 = $("#codeAlreadyExists");
+        if (!element1.hasClass("hide")) {
+            element1.addClass("hide");
+        }
+        let element2 = $("#addedLobby");
+        if (element2.hasClass("hide")) {
+            element2.removeClass("hide");
+        }
+    }
+    
+    function displayCouldNotJoin() {
+        let element = $("#couldNotJoin");
+        if (element.hasClass("hide")) {
+            element.removeClass("hide");
+        }
+    }
+ 
+    // Game handling
+    socket.addEventListener("message", (event) => {
+        let data = JSON.parse(event.data);
+        switch (data.type) {
+            
+        }
+    })
+
+
+// case "updatePlayerSearch":
+// console.log(data.searchingPlayers);
+// displaySearchingPlayers(data.searchingPlayers);
+// break;
+
+// function displaySearchingPlayers(playerArray) {
+// for (let p in playerArray) {
+// let name = playerArray[p];
+
+// let playerBtn = document.createElement("input");
+// playerBtn.classList.add(playerDivClass);
+// playerBtn.value = name;
+// playerBtn.type = "button";
+
+// document.querySelector("." + playerSearchContainerClass).appendChild(playerBtn);
+// }
+// }
+</script>
 </body>
 </html>
+

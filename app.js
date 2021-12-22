@@ -9,6 +9,7 @@ const { WebSocketServer } = require("ws");
 var inputAsync = require(__dirname + "/asyncInput.js");
 var server = require(__dirname + "/server.js");
 
+var mauMau = require(__dirname + "/mauMau.js");
 // constants
 
 const MASTER_TOKEN = "admin";
@@ -26,6 +27,8 @@ var app = express();
 
 var myServer = new server.MyServer(app);
 var myCommands = new server.CommandManager(myServer);
+
+var mauMauManager = new mauMau.Manager();
 
 var urlencodedParser = bodyParser.urlencoded({extended: false})
 
@@ -113,8 +116,7 @@ app.get("/gift1", (req, res) => {
     if (!authLogin(req, res)) return;
     if (!authGiftUnlock(req, res, 1)) return;
 
-    var args = {};
-    res.render("gift1_game");
+    res.render("gift1_game", {user: req.session.user});
 
 })
 
@@ -228,15 +230,23 @@ process.on("SIGINT", () => {
 // configure webSocket
 var wss = myServer.wss;
 
-wss.on("connection", (socket) => {
+
+
+wss.on("connection", (socket) => {    
     socket.on("message", (rawData) => {
         var data = JSON.parse(rawData.toString());
         switch(data.type) {
             case "newUser":
                 socket.userName = data.userName;
+                socket.presentNum = data.presentNum;
                 socket.date = Date(data.date);
-                myServer.addClient(socket.userName, socket)
+                myServer.addClient(socket.userName, socket, forceNew = true)
                 break;
+            
+            // todo: outsource this later on
+            case "joinMauMauPlayerSearch":
+                mauMauManager.addOnlinePlayer(socket.userName, socket);
+                //playing Mau Mau
         }  
     })
 })
@@ -250,6 +260,10 @@ wss.on("connection", (socket) => {
 //         }
 //     }
 // })
+
+wss.on("close", (socket) => {
+    console.log("closing a websocket");
+})
 
 function verfiyChallenge(userName, challengeNum) {
     if (myServer.users[userName].additionalPresentData[3].challenges.finished[challengeNum] === true) {
@@ -297,3 +311,6 @@ myServer.listen(PORT);
 // ask for shutdown save (async input)
 // var saveBeforeShutdown = inputAsync.getYorN("Shutdown ([Y]es-save/[N]o-save)\n");
 // saveBeforeShutdown.then((state) => {myServer.shutdown(save=state)});
+
+//todo:
+// replace var with let in many cases
