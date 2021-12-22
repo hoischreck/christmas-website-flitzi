@@ -247,19 +247,14 @@ wss.on("connection", (socket) => {
             case "joinMauMauPlayerSearch":
                 mauMauManager.addOnlinePlayer(socket.userName, socket);
                 //playing Mau Mau
+                break;
+            case "closeConnection":
+                console.log("connection is closed (websocket call)");
+                myServer.closeClient(data.name);
+                break;
         }  
     })
 })
-
-// wss.on("close", (socket) => {
-//     console.log("closing");
-//     for (i in clients) {
-//         if (clients[i] == socket) {
-//             delete clients[i];
-//             return;        
-//         }
-//     }
-// })
 
 wss.on("close", (socket) => {
     console.log("closing a websocket");

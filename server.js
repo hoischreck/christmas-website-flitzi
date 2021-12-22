@@ -122,7 +122,9 @@ exports.MyServer = class MyServer {
     }
 
     closeClient(identifier) {
+        if (!this.clients.hasOwnProperty(identifier)) return;
         this.clients[identifier].close();
+        delete this.clients[identifier];
     }
   
     getClient(identifier) {

@@ -142,6 +142,8 @@
 
     </section>
 
+    <!-- 4 Eier in einer Pfanne -->
+
 <script>
 
     //const socket = new WebSocket("ws://" ); // use ws or wss protocol?
@@ -211,6 +213,16 @@
         }
         socket.send(JSON.stringify(data));
     })
+
+    window.addEventListener("unload", function () {
+        if (socket.readyState == WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                type: "closeConnection",
+                name: user.name
+            }))
+        }
+        //socket.close(); //connection is closed by server
+    });
 
     // function requestTxtFile(fileName) {
     //     var data = {

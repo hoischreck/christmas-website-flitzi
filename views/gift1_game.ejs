@@ -8,7 +8,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <title>Geschenk Nr.1</title>
 </head>
-<body>
+<body onload="setupRoutine()">
 
     <!-- Navigation Bar -->
     
@@ -78,14 +78,10 @@
             <h2 class="challenge__heading">
                 MauMau-Lobby (2 Spieler)
             </h2>
-            <div class="joined_lobby_info__container">
-            </div>
+            <div class="joined_lobby_info__container"></div>
             <div class="joined_lobby_ready__container flex-column flex-xy">
-                <input id="joined_lobby_ready__btn" class="btn-1 btn-ready" type="button" value="Bereit zum spielen">
-                <span id="playerReady" class="challenge__status">
-                    <b>Spieler bereit: </b>
-                    m/n
-                </span>
+                <input id="joined_lobby_ready__btn" class="btn-1 btn-ready" type="button" value="Bereit" onclick="toggleReady()">
+                <span id="playerReady" class="challenge__status"></span>
             </div>
         </div>
     </div>
@@ -107,6 +103,25 @@
     const socket = new WebSocket("ws://" + window.location.href.split("//")[1]);
 
     const user = JSON.parse('<%- JSON.stringify(user) %>');
+    var lobbyCode;
+
+    
+
+    window.addEventListener("unload", function () {
+        if (socket.readyState == WebSocket.OPEN) {  
+            if (!(lobbyCode == undefined)) {
+                socket.send(JSON.stringify({
+                    type: "leaveLobby",
+                    lobby: lobbyCode,
+                    name: user.name
+                }));  
+            };
+            socket.send(JSON.stringify({
+                type: "closeConnection",
+                name: user.name
+            }))
+        }   //socket.close(); //connection is closed by server
+    });
 
     socket.addEventListener("open", (event) => {
         socket.send(JSON.stringify({
@@ -120,6 +135,8 @@
                 type: "joinMauMauPlayerSearch",
             }));
     })
+
+    // allow leaving a lobby with a button click
 
     // Lobby-handling
     socket.addEventListener("message", (event) => {
@@ -135,20 +152,39 @@
                 displayCouldNotJoin();
                 break;
 
-            case "joinedLobby":
+            case "leftLobby":
+                // implement logic for leaving a lobby
+
+                break;
+            case "updateLobby":
+                console.log("somebody joined or lefted");
                 let players = [];
                 for (let i in data.players) {
                     players.push(data.players[i].name);
                 }
+                lobbyCode = data.code;
                 displayJoinedLobby(
-                    lobbyCode = data.code,
+                    lobbyCode = lobbyCode,
                     playerList = players,
                     lobbySize = data.lobbySize,
                     readyCount = data.readyCount
                 );
                 break;
+
+            // todo: outsource into extra handler
+            case "gameStart":
+                break;
         }
     })
+
+    //todo: unnecessary? 
+    // function setupRoutine() {
+    //     checkIfInLobby();
+    // }
+
+    // function checkIfInLobby() {
+        
+    // }
 
     // create new lobby
     function createNewLobby() {
@@ -239,14 +275,32 @@
             element.removeClass("hide");
         }
     }
- 
-    // Game handling
-    socket.addEventListener("message", (event) => {
-        let data = JSON.parse(event.data);
-        switch (data.type) {
-            
+
+    function toggleReady() {
+        let btn = $("#joined_lobby_ready__btn");
+        let ready = btn.hasClass("btn-ready");
+        if (ready) {
+            // send ready
+            btn.removeClass("btn-ready");
+            btn.addClass("btn-notready");
+            btn.attr("value", "Nicht Bereit");
+            socket.send(JSON.stringify({
+                type: "readyPlayer",
+                name: user.name,
+                lobby: lobbyCode
+            }))
+        } else {
+            // send unready
+            btn.addClass("btn-ready");
+            btn.removeClass("btn-notready");
+            btn.attr("value", "Bereit");
+            socket.send(JSON.stringify({
+                type: "unreadyPlayer",
+                name: user.name,
+                lobby: lobbyCode
+            }))
         }
-    })
+    }
 
 
 // case "updatePlayerSearch":

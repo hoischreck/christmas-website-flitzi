@@ -26,19 +26,32 @@ exports.Manager = class MauMauLobbyManager {
         let lobby = this.lobbies[lobbyCode];
         let player = this.connectedPlayers[playerName];
         if (!lobby.addPlayer(player)) return false; // lobby was already full
-        //player.inLobby = true; 
+        player.inLobby = true; 
         //todo: MUST BE UNCOMMETED (only for dev purposes)
-
+        console.log("player joined: " + player.name)
         // send data to all clients
-        lobby.sendAll({
-            type: "joinedLobby",
-            code: lobby.code,
-            players: lobby.players,
-            lobbySize: lobby.size(),
-            readyCount: lobby.readyCount()
-        })
-            
+        lobby.updateClientLobbies();
         return true;
+    }
+
+    leaveLobby(playerName, lobbyCode) {
+        let player = this.connectedPlayers[playerName];
+        if (!player.inLobby) return false; // player is in no lobby
+        let lobby = this.lobbies[lobbyCode];
+        lobby.removePlayer(player);
+        player.inLobby = false; 
+        lobby.updateClientLobbies();
+        player.socket.send(JSON.stringify({
+            type: "leftLobby"
+        }))   
+        console.log("left lobby")
+    }
+
+    playerReadyState(playerName, lobbyCode, state=true) {
+        let lobby = this.lobbies[lobbyCode];
+        if (!lobby.readyPlayer(playerName, state)) return false; // player is in no lobby
+        lobby.updateClientLobbies();
+        lobby.checkGameStart();
     }
 
     _addMessageHandler(playerName) {
@@ -57,15 +70,25 @@ exports.Manager = class MauMauLobbyManager {
                         }))
                     }
                     break;
+
                 case "joinLobby":
-                    
                     if (!this.joinLobby(data.playerName, data.lobbyCode)) {
                         socket.send(JSON.stringify({
                             type: "couldNotJoin" // invalid code or user somehow already in lobby
                         }))
-                    } else {
-                        
-                    }
+                    } else {}
+                    break;
+
+                case "leaveLobby":
+                    this.leaveLobby(data.name, data.lobby);
+                    break;
+
+                case "readyPlayer":
+                    this.playerReadyState(data.name, data.lobby, true);
+                    break;
+
+                case "unreadyPlayer":
+                    this.playerReadyState(data.name, data.lobby, false);
                     break;
             }
         })  
@@ -120,23 +143,41 @@ class Lobby {
         if (this.isFull()) {
             //throw Error("Lobby only supports a maximum of " + Lobby.lobbySize + "players");
             return false;
+        } 
+        for (let i in this.players) {
+            if (this.players[i].name == player.name) return false; // prevents joining with same account twice
         }
         this.players.push(player); 
         return true;
     }
 
-    readyPlayer(playerName, state=true) {
+    readyPlayer(playerName, newState=true) {
         for (let i in this.players) {
             let p = this.players[i];
             if (p.name == playerName) {
-                p.ready = state;
-                return;
+                p.ready = newState;
+                return true;
             }
         }
+        return false;
     }
 
     removePlayer(player) {
         this.players.splice(this.players.indexOf(player), 1);
+    }
+
+    checkGameStart() {
+        if (!this.readyCount() >= Lobby.lobbySize) return;
+        this.startNewGame();
+    } 
+
+    startNewGame() {
+        this.game = new MauMauGame(this);
+        
+    }
+
+    endGame() {
+        this.game.end();
     }
 
     isFull() {
@@ -157,16 +198,23 @@ class Lobby {
         return c;
     }
 
+    updateClientLobbies() {
+        this.sendAll({
+            type: "updateLobby",
+            code: this.code,
+            players: this.players,
+            lobbySize: this.size(),
+            readyCount: this.readyCount()
+        })
+    }
+
     sendAll(dataObj, excludePlyName=null) {
         let data = JSON.stringify(dataObj);
-        console.log("sending to: " + this.size())
         for (let p in this.players) {
             let player = this.players[p];
-            console.log("1 sending to: " + player.name)
             if (excludePlyName !== null && player.name == excludePlyName) {
                 continue;
             }
-            console.log("2 sending to: " + player.name)
             player.socket.send(data);
         }
     }
@@ -175,9 +223,34 @@ class Lobby {
 class MauMauGame {
     constructor(playerLobby) {
         this.lobby = playerLobby;
+        this._addInstructions();
+    }
+
+    gameInstructions(rawData) {
+        var data = JSON.parse(rawData.toString());
+        switch (data.type) {
+            case "":
+                break;
+        }
     }
 
     play() {
+        console.log("GAME OF MAU MAU has started");
+    }
 
+    end() {
+        this._removeInstructions();
+    }
+
+    _addInstructions() {
+        for (let p in this.lobby.players) {
+            this.lobby.players[p].socket.on("message", this.gameInstructions);
+        }
+    }
+
+    _removeInstructions() {
+        for (let p in this.lobby.players) {
+            this.lobby.players[p].socket.removeListener("message", this.gameInstructions);
+        }
     }
 }
