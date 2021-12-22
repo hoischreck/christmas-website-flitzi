@@ -167,13 +167,15 @@ class Lobby {
     }
 
     checkGameStart() {
-        if (!this.readyCount() >= Lobby.lobbySize) return;
+        if (this.readyCount() < Lobby.lobbySize) return;
         this.startNewGame();
     } 
 
     startNewGame() {
         this.game = new MauMauGame(this);
-        
+        this.sendAll({
+            type: "gameStart"
+        })
     }
 
     endGame() {

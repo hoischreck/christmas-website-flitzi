@@ -86,6 +86,9 @@
         </div>
     </div>
     
+    <div class="container-secondary game__container hide">
+        Das ist das Spiel
+    </div>
     <!-- <h2>Spielersuche</h2> -->
 
     <!-- <div class="container-secondary flex-xy flex-column player_search__container">
@@ -157,7 +160,6 @@
 
                 break;
             case "updateLobby":
-                console.log("somebody joined or lefted");
                 let players = [];
                 for (let i in data.players) {
                     players.push(data.players[i].name);
@@ -173,9 +175,21 @@
 
             // todo: outsource into extra handler
             case "gameStart":
+                displayGameStart();
                 break;
         }
     })
+
+    function displayGameStart() {
+        let lobby = $(".joined_lobby__container_main");
+        if (!lobby.hasClass("hide")) {
+            lobby.addClass("hide");
+        } 
+        let game = $(".game__container");
+        if (game.hasClass("hide")) {
+            lobby.remove("hide");
+        } 
+    }
 
     //todo: unnecessary? 
     // function setupRoutine() {
