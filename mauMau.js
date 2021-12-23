@@ -1,4 +1,9 @@
 const { MyServer } = require("./server");
+const fs = require("fs");
+const { range } = require("express/lib/request");
+const { all } = require("express/lib/application");
+
+const cardDir = __dirname + "/assets/img/cards";
 
 exports.Manager = class MauMauLobbyManager {
     constructor() {
@@ -176,6 +181,8 @@ class Lobby {
         this.sendAll({
             type: "gameStart"
         })
+        // start game
+        this.game.start();
     }
 
     endGame() {
@@ -223,6 +230,8 @@ class Lobby {
 }
 
 class MauMauGame {
+    static cardsPerPlayer = 6;
+
     constructor(playerLobby) {
         this.lobby = playerLobby;
         this._addInstructions();
@@ -236,12 +245,59 @@ class MauMauGame {
         }
     }
 
+    //todo: test this
+    start() {
+        // init all cards (set also possible)
+        this.allCards = [];
+        fs.readdirSync(cardDir).forEach(file => {
+            this.allCards.push(new Card("/img/cards/" + file));
+        })
+        
+        // set cards of players
+        for (let p in this.lobby.players) {
+            let player = this.lobby.players[p];
+            player.cards = [];
+            for (let i in range(MauMauGame.cardsPerPlayer)) {
+                player.cards.push(this._popRandomCard());
+            }
+            console.log(JSON.stringify(player.cards))
+        }
+        console.log(this.allCards.length)
+
+
+        this.updateAllPlayers();
+
+        //this.play();
+    }
+
     play() {
         console.log("GAME OF MAU MAU has started");
     }
 
     end() {
         this._removeInstructions();
+        //todo: remove card information
+    }
+
+    updateAllPlayers() {
+        let players = this.lobby.players;
+        for (let p in players) {
+            let player = players[p];
+
+            player.socket.send(JSON.stringify({
+                type: "udpdateCardView",
+                cards: player.cards
+            }))
+
+        }
+    }
+
+    _popRandomCard() {
+        //todo: what if length 0
+        let i = Math.floor(Math.random()*this.allCards.length);
+        let card = this.allCards[i];
+        this.allCards.splice(i, 1);
+        return card;
     }
 
     _addInstructions() {
@@ -254,5 +310,12 @@ class MauMauGame {
         for (let p in this.lobby.players) {
             this.lobby.players[p].socket.removeListener("message", this.gameInstructions);
         }
+    }
+}
+
+class Card {
+    constructor(path) {
+        this.path = path;
+        this.value = path.split("_").at(-1).split(".")[0];
     }
 }

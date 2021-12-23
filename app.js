@@ -249,15 +249,10 @@ wss.on("connection", (socket) => {
                 //playing Mau Mau
                 break;
             case "closeConnection":
-                console.log("connection is closed (websocket call)");
                 myServer.closeClient(data.name);
                 break;
         }  
     })
-})
-
-wss.on("close", (socket) => {
-    console.log("closing a websocket");
 })
 
 function verfiyChallenge(userName, challengeNum) {

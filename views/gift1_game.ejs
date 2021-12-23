@@ -8,7 +8,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <title>Geschenk Nr.1</title>
 </head>
-<body onload="setupRoutine()">
+<body>
 
     <!-- Navigation Bar -->
     
@@ -43,7 +43,8 @@
     </div>
 
     
-    <div class="container-secondary flex-column flex-xy lobby__container">
+    <!-- remove hide -->
+    <div class="hide container-secondary flex-column flex-xy lobby__container">
 
         <div class="lobby__input_container">
             <label for="joinLobby"></label>
@@ -54,7 +55,7 @@
                 Code does not exist
             </p>
         </div>
-
+        
         <div class="lobby__input_container">
             <label for="createLobby"></label>
             <input class="text-input-1" type="text" placeholder="create new lobby code" name="createLobby">
@@ -86,8 +87,25 @@
         </div>
     </div>
     
-    <div class="container-secondary game__container hide">
-        Das ist das Spiel
+    <div class="container-secondary game__container"> 
+        <!-- add hide -->
+        <div class="game__container_enemy">
+
+        </div>
+        <div class="game__container_field">
+            <div class="game__upper_card_container">
+                
+            </div>
+            <div class="game__deck_card_container">
+
+            </div>
+        </div>
+        <div class="game__container_player">
+
+            <!-- <div class="cards_container">
+                <div class="card"></div>
+            </div> -->
+        </div>
     </div>
     <!-- <h2>Spielersuche</h2> -->
 
@@ -97,7 +115,7 @@
 
 
 <script>
-
+    // add server side commands to overview lobbies, etc
     const playerSearchContainerClass = "player_search__container";
     const playerDivClass = "player_search_player__container";
 
@@ -177,6 +195,12 @@
             case "gameStart":
                 displayGameStart();
                 break;
+
+            case "updateCardView":
+                
+                displayPlayerCards(data.cards);
+
+                break;
         }
     })
 
@@ -190,6 +214,106 @@
             lobby.remove("hide");
         } 
     }
+
+    // displayPlayerCards([{ path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }]);
+
+    //displayPlayerCards([{ path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }])
+
+    const cardWidth = parseInt(window.getComputedStyle(document.body).getPropertyValue("--card-width").replace("px", ""));
+
+    function clearAllCards() {
+        $(".game__container_player").empty();
+        $(".game__container_enemy").empty();
+        $(".game__deck_card_container").empty();
+        $(".game__upper_card_container").empty();
+    }
+
+    function displayField(remaining, upperCard=null) {
+
+        // display deck card (background image is implicitly backside of card)
+        if (remaining > 0) {
+            let newCardContainer = document.createElement("div");
+            newCardContainer.classList.add("cards_container_main")
+            let newCard = document.createElement("div");
+            newCard.classList.add("card");
+            newCardContainer.appendChild(newCard);
+            $(".game__deck_card_container").append(newCardContainer);
+        }
+        // check if upper card exists
+        if (upperCard !== null) {
+            let newCardContainer = document.createElement("div");
+            newCardContainer.classList.add("cards_container_main")
+            let newCard = document.createElement("div");
+            newCard.classList.add("card");
+            newCard.style.backgroundImage = `url(${upperCard.path})`;
+            newCardContainer.appendChild(newCard);
+
+            $(".game__upper_card_container").append(newCardContainer);
+        }
+    }
+
+    function displayPlayerCards(cards) {
+        let k = 400;
+        let cardAmount = cards.length;
+        let totalCardWidth = cardAmount * cardWidth;
+        let freeSpace = $(".game__container_player").width() - k;
+
+        let overlappingSpace;
+        if (totalCardWidth > freeSpace) {
+            overlappingSpace = Math.floor((totalCardWidth-freeSpace)/cardAmount);
+        }
+        for (let c in cards) {
+            let path = cards[c].path;
+
+            let newCardContainer = document.createElement("div");
+            newCardContainer.classList.add("cards_container_main")
+            let newCard = document.createElement("div");
+            newCard.classList.add("card");
+            newCard.style.backgroundImage = `url(${path})`;
+            newCardContainer.appendChild(newCard);
+
+            if (overlappingSpace !== undefined) {
+                newCardContainer.style.marginLeft = `${-overlappingSpace}px`;
+            }
+
+            $(".game__container_player").append(newCardContainer);
+        }
+        if (overlappingSpace !== undefined) {
+            $(".game__container_player").css("margin-left", `${overlappingSpace}px`);
+        }
+    }
+
+
+    function displayEnemyCards(cardAmount) {
+        let k = 400;
+        let totalCardWidth = cardAmount * cardWidth;
+        let freeSpace = $(".game__container_enemy").width() - k;
+
+        let overlappingSpace;
+        if (totalCardWidth > freeSpace) {
+            overlappingSpace = Math.floor((totalCardWidth - freeSpace) / cardAmount);
+            console.log(overlappingSpace);
+        }
+        for (let i = 0; i < cardAmount; i++) {
+            let path = "/img/cards/blue.png";
+
+            let newCardContainer = document.createElement("div");
+            newCardContainer.classList.add("cards_container_main")
+            let newCard = document.createElement("div");
+            newCard.classList.add("card");
+            newCardContainer.appendChild(newCard);
+
+            if (overlappingSpace !== undefined) {
+                newCardContainer.style.marginLeft = `${-overlappingSpace}px`;
+            }
+
+            $(".game__container_enemy").append(newCardContainer);
+        }
+        if (overlappingSpace !== undefined) {
+            $(".game__container_enemy").css("margin-left", `${overlappingSpace}px`);
+        }
+    }
+
 
     //todo: unnecessary? 
     // function setupRoutine() {

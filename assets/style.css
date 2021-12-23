@@ -18,6 +18,10 @@ html {
 }
 
 body {
+    /* width * 1.5 = height */
+    --card-width: 150px; 
+    --card-height: 225px;
+
     margin: 0;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     background-color: var(--dark-red);
@@ -563,6 +567,79 @@ h1 {
 
 #playerReady {
     margin-bottom: 1rem;
+}
+
+.game__container {
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 90vh;
+}
+
+.game__container_enemy {
+    width: 100%;
+    flex-grow: 1;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game__container_field {
+    width: 100%;
+    flex-grow: 2;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game__container_player {
+    width: 100%;
+    flex-grow: 1;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cards_container_main {
+    float: left
+}
+
+.cards_container {
+
+}
+
+.card {
+
+    margin: 0;
+    width: var(--card-width);
+    height: var(--card-height);
+    border-radius: 10px;
+    background-color: white;
+
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    background-image: url("/img/cards/blue.png");
+}
+
+
+.card-img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.game__upper_card_container {
+    width: var(--card-width);
+    margin-right: 3rem;
+}
+
+.game__deck_card_container {
+    width: var(--card-width);
 }
 
 /* .player_search_player__container {
