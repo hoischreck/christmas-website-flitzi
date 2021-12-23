@@ -32,8 +32,8 @@ exports.Manager = class MauMauLobbyManager {
     removeOnlinePlayer(playerName) {
         let player = this.connectedPlayers[playerName];
         if (player.inLobby) {
-            console.log(player.lobbyCode)
-            this.leaveLobby(playerName, player.lobbyCode);
+            console.log("player leaving with code:" + player.joinedLobbyCode)
+            this.leaveLobby(playerName, player.joinedLobbyCode);
         }
         // player.socket.send(JSON.stringify({
         //     type: "terminatingConnection",
@@ -49,7 +49,6 @@ exports.Manager = class MauMauLobbyManager {
         if (!lobby.addPlayer(player)) return false; // lobby was already full
         player.inLobby = true; 
         player.joinedLobbyCode = lobbyCode;
-        //todo: MUST BE UNCOMMETED (only for dev purposes)
         console.log("player joined: " + player.name)
         // send data to all clients
         lobby.updateClientLobbies();
@@ -57,22 +56,39 @@ exports.Manager = class MauMauLobbyManager {
     }
 
     leaveLobby(playerName, lobbyCode) {
+        console.log("code: " + lobbyCode)
         let player = this.connectedPlayers[playerName];
         if (!player.inLobby) return false; // player is in no lobby
         let lobby = this.lobbies[lobbyCode];
         lobby.removePlayer(playerName);
         player.inLobby = false; 
         player.joinedLobbyCode = null;
-        lobby.updateClientLobbies();
+        player.ready = false;
+
+        let wasInGame = this.leaveGame(playerName, lobbyCode);
+        console.log("successfully left game")
+        console.log("ready: " + player.ready);
+        // dont update lobby when players were in a game
+        if (!wasInGame) {
+            lobby.updateClientLobbies();
+        }
+        
         player.socket.send(JSON.stringify({
             type: "leftLobby"
-        }))   
-        console.log("left lobby")
+        }))
+    }
+
+    leaveGame(playerName, lobbyCode) {
+        let lobby = this.lobbies[lobbyCode];
+        if (lobby.game === undefined) return false;
+        lobby.playerDisconnect(playerName);
+        return true;
     }
 
     playerReadyState(playerName, lobbyCode, state=true) {
         let lobby = this.lobbies[lobbyCode];
         if (!lobby.readyPlayer(playerName, state)) return false; // player is in no lobby
+        console.log("toggling ready state")
         lobby.updateClientLobbies();
         lobby.checkGameStart();
     }
@@ -103,6 +119,7 @@ exports.Manager = class MauMauLobbyManager {
                     break;
 
                 case "leaveLobby":
+                    console.log("leaving lobby: " + data.lobby);
                     this.leaveLobby(data.name, data.lobby);
                     break;
 
@@ -149,7 +166,7 @@ class Player {
         this.socket = socket;
         this.inLobby = false;
         this.joinedLobbyCode = null;
-        //this.ready = false;
+        this.ready = false;
     }
 }
 
@@ -160,6 +177,7 @@ class Lobby {
         this.code = code;
         this.lobbyManager = lobbyManager;
         this.players = [];
+        this.game;
     }
 
     addPlayer(player) {
@@ -212,6 +230,11 @@ class Lobby {
         this.game.start();
     }
 
+    playerDisconnect(playerName) {
+        this.game.terminatePlayer(playerName);
+        this.endGame();
+    }
+
     endGame() {
         this.game.end();
     }
@@ -245,6 +268,7 @@ class Lobby {
     }
 
     sendAll(dataObj, excludePlyName=null) {
+        //console.log(dataObj)
         let data = JSON.stringify(dataObj);
         for (let p in this.players) {
             let player = this.players[p];
@@ -256,6 +280,7 @@ class Lobby {
     }
 }
 
+// allow drawing in the beginning?
 class MauMauGame {
     static cardsPerPlayer = 6;
     static cardBackSideFile = "blue.png"
@@ -283,7 +308,12 @@ class MauMauGame {
                     if (!game.validateCardDraw(data.playerName)) return;
                     game.updateDrawCard();
                     game.updateAllPlayers();
-                    game.notifyNextTurn(false); // calls same player again
+                    if (game.drawsLeft < 1) {
+                        game.notifyNextTurn();
+                    } else {
+                        game.notifyNextTurn(false);
+                    }
+                     // calls same player again
                     break;
             }
         }
@@ -319,7 +349,12 @@ class MauMauGame {
     updateDrawCard() {
         //todo: when no cards left shuffle
         this.turnPlayer.cards.push(this._randomPop(this.deckCards));
-        
+        this.drawsLeft--;
+        if (this.deckCards.length < 1) {
+            this.deckCards = this._shuffle(this.playedCards.slice(0, -1));
+            this.playedCards = [];
+            this.playedCards.push(this.upperCard);
+        }
     }
 
     //todo: test this
@@ -341,11 +376,8 @@ class MauMauGame {
             }
         }
 
-        console.log("game start successfully initiated")
-
         this.updateAllPlayers();
-        
-        console.log("game starts now")
+
         this.play();
     }
 
@@ -375,10 +407,9 @@ class MauMauGame {
                 this.currenPlayerIndx = 0;
             }
             this.turnPlayer = this.activePlayers[this.currenPlayerIndx];
-            this.allowedDraws = 1;
+            this.drawsLeft = 1;
         }
 
-        console.log("players turn: " + this.turnPlayer.name)
         this.turnPlayer.socket.send(JSON.stringify({
             type: "playerTurn",
             drawsLeft: this.drawsLeft,
@@ -406,8 +437,18 @@ class MauMauGame {
 
     validateCardDraw(playerName) {
         if (this.turnPlayer.name != playerName) return false; 
-        if (this.allowedDraws < 1) return false;
+        if (this.drawsLeft < 1) {
+            return false;
+        };
         return true;
+    }
+
+    terminatePlayer(playerName) {
+        //disconnectedPlayer
+        console.log("terminating player")
+        this.lobby.sendAll({
+            type: "playerDisconnected"
+        }, playerName)
     }
 
     end() {

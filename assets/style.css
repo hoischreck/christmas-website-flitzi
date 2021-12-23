@@ -586,17 +586,30 @@ h1 {
     margin-bottom: 1rem;
 }
 
-.game__container {
+.game__container-secondary {
+    background-color: var(--darker-red);
+    padding: 2rem 0 2rem 0;
     width: 90%;
+    border-radius: 20px;
+    height: 95vh;
+}
+
+.game__container {
+    box-shadow: 0 0 4px black;
+    width: 90%;
+    background-color: var(--dark-gray);
+    padding: 2rem 0 2rem 0;
+    border-radius: 20px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 90vh;
 }
 
+
+
 .game__container_enemy {
-    width: 100%;
+    width: 60%;
     flex-grow: 1;
 
     display: flex;
@@ -611,10 +624,57 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 2rem 0 2rem 0;
+}
+
+.game__container_main {
+    width: 100%;
+    background-color: var(--dark-green);
+    padding: 2rem 0 2rem 0;
+}
+
+.game__player_info {
+    background-color: var(--white);
+    flex-grow: 2;
+    width: 20%;
+    font-weight: bolder;
+    padding: 1.2rem 2rem 1.2rem 2rem;
+    border-radius: 20px;
+}
+
+#game__field_info_left {
+    background-color: var(--dark-gray);
+}
+
+.game__field_info {
+    background-color: var(--lighter-gray);
+    flex-grow: 2;
+    width: 20%;
+    font-weight: bolder;
+    font-size: 3.5rem;
+    padding: 1.2rem 2rem 1.2rem 2rem;
+    border-radius: 30px;
+    color: var(--white);
+}
+
+.game__turn_info {
+    font-size: 2rem;
+}
+
+.game__player_info_enemy {
+    font-size: 1.5rem;
+    background-color: #00a315;
+}
+
+.game__turn-inactive {
+    background-color: #333333;
+    border-top: 6px solid #292929;
+    border-left: 6px solid #292929;
+    border-right: 6px solid #292929;
 }
 
 .game__container_player {
-    width: 100%;
+    width: 60%;
     flex-grow: 1;
 
     display: flex;
@@ -650,12 +710,16 @@ h1 {
 
 .card-raise:hover {
     box-shadow: 0 0 3px black;
-    margin-top: -10px;
+    margin-top: -85px;
 }
 
 .card-img {
     max-width: 100%;
     max-height: 100%;
+}
+
+.card_deck:hover {
+    box-shadow: 0 0 5px black;
 }
 
 .game__upper_card_container {

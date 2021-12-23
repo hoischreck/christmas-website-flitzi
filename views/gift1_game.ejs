@@ -90,26 +90,64 @@
         </div>
     </div>
     
-    <div class="container-secondary game__container hide"> 
+    <div class="game__container-secondary flex-column flex-xy hide">
         <!-- add hide -->
-        <div class="game__container_enemy">
-
-        </div>
-        <div class="game__container_field">
-            <div class="game__upper_card_container">
-                
+        <div class="game__container ">
+            
+            <div class="game__container_main flex-row flex-xy">
+                <div id="enemy_turn" class="game__player_info game__turn_info" style="margin-left: 3rem;">
+                    Am Zug
+                </div>
+                <div class="game__container_enemy">
+        
+                    <!-- <div class="cards_container">
+                                    <div class="card"></div>
+                                </div> -->
+                </div>
+                <div id="enemy_name" class="game__player_info game__player_info_enemy" style="margin-right: 3rem;">
+                    Gegnername
+                </div>
             </div>
-            <div class="game__deck_card_container">
+        
+            <div class="game__container_field">
+
+                <div class="flex-row flex-xy">
+                    <div id="game__field_info_left" class="game__field_info" style="margin-right: 3rem; width: 20%;">
+                        
+                    </div>
+
+                    <div class="game__upper_card_container">
+                    
+                    </div>
+                    <div class="game__deck_card_container">
+                    
+                    </div>
+
+                    <div id="remaining_cards" class="game__field_info" style="margin-left: 3rem;">
+                        10
+                    </div>
+                </div>
 
             </div>
-        </div>
-        <div class="game__container_player">
-
-            <!-- <div class="cards_container">
-                <div class="card"></div>
-            </div> -->
+        
+            <div class="game__container_main flex-row flex-xy">
+                <div id="player_turn" class="game__player_info game__turn_info" style="margin-left: 3rem;">
+                    Am Zug
+                </div>
+                <div class="game__container_player">
+        
+                    <!-- <div class="cards_container">
+                                    <div class="card"></div>
+                                </div> -->
+                </div>
+                <div class="game__player_info" style="margin-right: 3rem; background-color: var(--dark-green);">
+                    
+                </div>
+            </div>
+        
         </div>
     </div>
+   
     <!-- <h2>Spielersuche</h2> -->
 
     <!-- <div class="container-secondary flex-xy flex-column player_search__container">
@@ -119,10 +157,10 @@
     <div id="terminatedConnection" class="container-secondary flex-column flex-xy hide" style="margin-top: 2rem;">
 
         <div class="intro__container_text no-margin" style="margin: 0;">
-            <p class="intro__paragraph">
+            <p id="error_paragraph" class="intro__paragraph">
                 <b><u>ERROR!</u></b>
                 <br>
-                <b>Only one continuous connection is allowed</b>
+                <b>An Error occured</b>
             </p>
         </div>
 
@@ -145,11 +183,7 @@
     window.addEventListener("unload", function () {
         if (socket.readyState == WebSocket.OPEN) {  
             if (!(lobbyCode == undefined)) {
-                socket.send(JSON.stringify({
-                    type: "leaveLobby",
-                    lobby: lobbyCode,
-                    name: user.name
-                }));  
+                leaveLobby();
             };
             socket.send(JSON.stringify({
                 type: "closeConnection",
@@ -173,7 +207,11 @@
 
 
     socket.addEventListener("close", (event) => {
-        displayTerminatedConnection();
+        displayTerminatedConnection("Only 1 continuous connection allowed");
+        let lobby = $(".lobby__container");
+        if (!lobby.hasClass("hide")) {
+            lobby.addClass("hide");
+        }
     })
     // allow leaving a lobby with a button click
 
@@ -184,7 +222,6 @@
         switch (data.type) {
             // case "terminatingConnection":
             //     console.log("termination");
-            //     $(document.body).empty();
             //     displayTerminatedConnection(data.reason);
             //     break;
 
@@ -201,9 +238,14 @@
             case "leftLobby":
                 displayLeavingLobby();
                 // implement logic for leaving a lobby
-
                 break;
+
+            case "playerDisconnected":
+                displayEnemyDisconnect(data.disconnectedPlayer);
+                break;
+
             case "updateLobby":
+                console.log("update call")
                 let players = [];
                 for (let i in data.players) {
                     players.push(data.players[i].name);
@@ -223,6 +265,7 @@
                 break;
 
             case "updateCardView":
+                myTurn = false;
                 currentUpperCard = data.upperCard;
                 myCards = data.playerCards;
                 clearAllCards();
@@ -230,10 +273,13 @@
                 displayField(data.remainingInDeck, data.upperCard);
                 // since 1v1 -> only 1 enemy
                 displayEnemyCards(Object.values(data.enemyCardAmount)[0]);
+
+                $("#remaining_cards").html(data.remainingInDeck);
+                $("#enemy_name").html(Object.keys(data.enemyCardAmount)[0]);
+
                 break;
 
             case "playerTurn":
-                console.log("its my turn");
                 drawsLeft = data.drawsLeft;
                 myTurn = true;
                 displayPlayerTurn();
@@ -242,17 +288,44 @@
         }
     })
 
-    var myTurn = false;
+    var myTurn;
     var myCards;
     var currentUpperCard;
     var drawsLeft;
 
     function displayPlayerTurn() {
+        let enemy = $("#enemy_turn");
+        let player = $("#player_turn");
+        if (!enemy.hasClass("game__turn-inactive")) {
+            enemy.addClass("game__turn-inactive");
+            enemy.html("Nicht am Zug")
+        }
+        if (player.hasClass("game__turn-inactive")) {
+            player.removeClass("game__turn-inactive");
+            player.html("Am Zug");
+        }
+    }
 
+    function displayEnemyTurn() {
+        let enemy = $("#enemy_turn");
+        let player = $("#player_turn");
+        if (enemy.hasClass("game__turn-inactive")) {
+            enemy.removeClass("game__turn-inactive");
+            enemy.html("Am Zug")
+        }
+        if (!player.hasClass("game__turn-inactive")) {
+            player.addClass("game__turn-inactive");
+            player.html("Nicht am Zug");
+        }
     }
 
     function displayEnemyDisconnect() {
-
+        displayGameStop();
+        displayLeavingLobby();
+        displayTerminatedConnection("Player 2 disconnected");
+        setTimeout(() => {
+            displayNoTerminatedConnecion();
+        }, 10000)
     }
 
     function onCardClick(event) {
@@ -274,10 +347,8 @@
 
         // basice maumau ruleset
         if (currentUpperCard !== null) {
-            console.log("comparing cards")
             if (card.value != currentUpperCard.value && card.rank != currentUpperCard.rank) return;
         }
-        console.log("could place")
         // card can be placed
         socket.send(JSON.stringify({
             type: "playCard",
@@ -286,6 +357,7 @@
             upperCard: currentUpperCard
         }))
         myTurn = false;
+        displayEnemyTurn();
     }
 
     function onCardDraw() {
@@ -295,6 +367,9 @@
             playerName: user.name
         }))
         myTurn = false; // is checked on server side again
+        if (drawsLeft < 2) {
+            displayEnemyTurn();
+        }
     }
 
     function displayGameStart() {
@@ -302,18 +377,33 @@
         if (!lobby.hasClass("hide")) {
             lobby.addClass("hide");
         } 
-        let game = $(".game__container");
+        let game = $(".game__container-secondary");
         if (game.hasClass("hide")) {
             game.removeClass("hide");
+        } 
+        displayEnemyTurn();
+    }
+
+    function displayGameStop() {
+        let game = $(".game__container-secondary");
+        let lobby = $(".joined_lobby__container_main");
+        if (lobby.hasClass("hide")) {
+            lobby.removeClass("hide");
+        }
+        if (!game.hasClass("hide")) {
+            game.addClass("hide");
         } 
     }
 
     // displayPlayerCards([{ path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }]);
 
-    //displayPlayerCards([{ path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }])
-
     const cardWidth = parseInt(window.getComputedStyle(document.body).getPropertyValue("--card-width").replace("px", ""));
 
+    displayEnemyCards(7);
+    displayPlayerCards([{ path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }])
+    displayField(5, { path: "/img/cards/blue.png" });
+
+    
     function clearAllCards() {
         $(".game__container_player").empty();
         $(".game__container_enemy").empty();
@@ -329,6 +419,8 @@
             newCardContainer.classList.add("cards_container_main")
             let newCard = document.createElement("div");
             newCard.classList.add("card");
+            newCard.classList.add("card_deck");
+            newCard.onclick = onCardDraw;
             newCardContainer.appendChild(newCard);
             $(".game__deck_card_container").append(newCardContainer);
         }
@@ -419,21 +511,19 @@
     // }
 
     function displayTerminatedConnection(reason) {
-        console.log("termination")
-
         let errorContainer = $("#terminatedConnection");
         if (errorContainer.hasClass("hide")) {
             errorContainer.removeClass("hide");
         }
-        let lobby = $(".lobby__container");
-        if (!lobby.hasClass("hide")) {
-            lobby.addClass("hide");
+        displayLeavingLobby();
+        $("#error_paragraph").html(`<b><u>Error!</u></b><br><b>${reason}</b>`)
+    }
+
+    function displayNoTerminatedConnecion() {
+        let errorContainer = $("#terminatedConnection");
+        if (!errorContainer.hasClass("hide")) {
+            errorContainer.addClass("hide");
         }
-        let joinedLobby = $(".joined_lobby__container_main");
-        if (!joinedLobby.hasClass("hide")) {
-            joinedLobby.addClass("hide");
-        }
-        $("#terminatedConnection > p").html(`<b>${reason}</b>`)
     }
 
     // create new lobby
