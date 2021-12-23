@@ -236,6 +236,13 @@ wss.on("connection", (socket) => {
     socket.on("message", (rawData) => {
         var data = JSON.parse(rawData.toString());
         switch(data.type) {
+
+            // todo: outsource this later on
+            case "joinMauMauPlayerSearch":
+                mauMauManager.addOnlinePlayer(socket.userName, socket);
+                //playing Mau Mau
+                break;
+
             case "newUser":
                 socket.userName = data.userName;
                 socket.presentNum = data.presentNum;
@@ -243,11 +250,6 @@ wss.on("connection", (socket) => {
                 myServer.addClient(socket.userName, socket, forceNew = true)
                 break;
             
-            // todo: outsource this later on
-            case "joinMauMauPlayerSearch":
-                mauMauManager.addOnlinePlayer(socket.userName, socket);
-                //playing Mau Mau
-                break;
             case "closeConnection":
                 myServer.closeClient(data.name);
                 break;

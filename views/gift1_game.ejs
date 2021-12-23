@@ -44,7 +44,7 @@
 
     
     <!-- remove hide -->
-    <div class="hide container-secondary flex-column flex-xy lobby__container">
+    <div class="container-secondary flex-column flex-xy lobby__container">
 
         <div class="lobby__input_container">
             <label for="joinLobby"></label>
@@ -74,7 +74,10 @@
 
     </div>
 
-    <div class="container-secondary flex-xy joined_lobby__container_main hide">
+    <div class="container-secondary flex-xy flex-column joined_lobby__container_main hide" style="margin-top: 2rem;">
+
+        <input class="btn-4" type="button" value="leave lobby" onclick="leaveLobby()">
+
         <div class="flex-column flex-xy intro__container_text joined_lobby__container">
             <h2 class="challenge__heading">
                 MauMau-Lobby (2 Spieler)
@@ -87,7 +90,7 @@
         </div>
     </div>
     
-    <div class="container-secondary game__container"> 
+    <div class="container-secondary game__container hide"> 
         <!-- add hide -->
         <div class="game__container_enemy">
 
@@ -113,9 +116,22 @@
 
     </div> -->
 
+    <div id="terminatedConnection" class="container-secondary flex-column flex-xy hide" style="margin-top: 2rem;">
+
+        <div class="intro__container_text no-margin" style="margin: 0;">
+            <p class="intro__paragraph">
+                <b><u>ERROR!</u></b>
+                <br>
+                <b>Only one continuous connection is allowed</b>
+            </p>
+        </div>
+
+    </div>
+
 
 <script>
     // add server side commands to overview lobbies, etc
+    // kick from lobby when connecting with new client
     const playerSearchContainerClass = "player_search__container";
     const playerDivClass = "player_search_player__container";
 
@@ -125,8 +141,6 @@
 
     const user = JSON.parse('<%- JSON.stringify(user) %>');
     var lobbyCode;
-
-    
 
     window.addEventListener("unload", function () {
         if (socket.readyState == WebSocket.OPEN) {  
@@ -157,12 +171,23 @@
             }));
     })
 
+
+    socket.addEventListener("close", (event) => {
+        displayTerminatedConnection();
+    })
     // allow leaving a lobby with a button click
 
     // Lobby-handling
     socket.addEventListener("message", (event) => {
         let data = JSON.parse(event.data);
+        console.log(data)
         switch (data.type) {
+            // case "terminatingConnection":
+            //     console.log("termination");
+            //     $(document.body).empty();
+            //     displayTerminatedConnection(data.reason);
+            //     break;
+
             case "addedLobby":
                 displaySuccessfullyAddedLobby();
                 break;
@@ -174,6 +199,7 @@
                 break;
 
             case "leftLobby":
+                displayLeavingLobby();
                 // implement logic for leaving a lobby
 
                 break;
@@ -197,12 +223,79 @@
                 break;
 
             case "updateCardView":
-                
-                displayPlayerCards(data.cards);
-
+                currentUpperCard = data.upperCard;
+                myCards = data.playerCards;
+                clearAllCards();
+                displayPlayerCards(data.playerCards);
+                displayField(data.remainingInDeck, data.upperCard);
+                // since 1v1 -> only 1 enemy
+                displayEnemyCards(Object.values(data.enemyCardAmount)[0]);
                 break;
+
+            case "playerTurn":
+                console.log("its my turn");
+                drawsLeft = data.drawsLeft;
+                myTurn = true;
+                displayPlayerTurn();
+                break;
+
         }
     })
+
+    var myTurn = false;
+    var myCards;
+    var currentUpperCard;
+    var drawsLeft;
+
+    function displayPlayerTurn() {
+
+    }
+
+    function displayEnemyDisconnect() {
+
+    }
+
+    function onCardClick(event) {
+        if (!myTurn) return;
+        let cardElement = event.target;
+        let path = cardElement.getAttribute("href");
+        let card;
+        console.log("trying to find card")
+        for (let c in myCards) {
+            if (myCards[c].path == path) {
+                card = myCards[c];
+                break;
+            }
+        }
+        if (card === undefined) return;
+        console.log("found card")
+        // let value = path.split("_").at(-1).split(".")[0];
+        // let rank = path.split("/").at(-1).split("_")[0];
+
+        // basice maumau ruleset
+        if (currentUpperCard !== null) {
+            console.log("comparing cards")
+            if (card.value != currentUpperCard.value && card.rank != currentUpperCard.rank) return;
+        }
+        console.log("could place")
+        // card can be placed
+        socket.send(JSON.stringify({
+            type: "playCard",
+            playerName: user.name,
+            playedCard: card,
+            upperCard: currentUpperCard
+        }))
+        myTurn = false;
+    }
+
+    function onCardDraw() {
+        if (!myTurn) return;
+        socket.send(JSON.stringify({
+            type: "drawCard",
+            playerName: user.name
+        }))
+        myTurn = false; // is checked on server side again
+    }
 
     function displayGameStart() {
         let lobby = $(".joined_lobby__container_main");
@@ -211,7 +304,7 @@
         } 
         let game = $(".game__container");
         if (game.hasClass("hide")) {
-            lobby.remove("hide");
+            game.removeClass("hide");
         } 
     }
 
@@ -269,6 +362,9 @@
             newCardContainer.classList.add("cards_container_main")
             let newCard = document.createElement("div");
             newCard.classList.add("card");
+            newCard.classList.add("card-raise");
+            newCard.setAttribute("href", path)
+            newCard.onclick = onCardClick;
             newCard.style.backgroundImage = `url(${path})`;
             newCardContainer.appendChild(newCard);
 
@@ -283,7 +379,6 @@
         }
     }
 
-
     function displayEnemyCards(cardAmount) {
         let k = 400;
         let totalCardWidth = cardAmount * cardWidth;
@@ -295,7 +390,6 @@
             console.log(overlappingSpace);
         }
         for (let i = 0; i < cardAmount; i++) {
-            let path = "/img/cards/blue.png";
 
             let newCardContainer = document.createElement("div");
             newCardContainer.classList.add("cards_container_main")
@@ -323,6 +417,24 @@
     // function checkIfInLobby() {
         
     // }
+
+    function displayTerminatedConnection(reason) {
+        console.log("termination")
+
+        let errorContainer = $("#terminatedConnection");
+        if (errorContainer.hasClass("hide")) {
+            errorContainer.removeClass("hide");
+        }
+        let lobby = $(".lobby__container");
+        if (!lobby.hasClass("hide")) {
+            lobby.addClass("hide");
+        }
+        let joinedLobby = $(".joined_lobby__container_main");
+        if (!joinedLobby.hasClass("hide")) {
+            joinedLobby.addClass("hide");
+        }
+        $("#terminatedConnection > p").html(`<b>${reason}</b>`)
+    }
 
     // create new lobby
     function createNewLobby() {
@@ -353,7 +465,6 @@
     }
 
     function displayJoinedLobby(lobbyCode, playerList, lobbySize, readyCount) {
-        console.log("join update");
         let lobby = $(".lobby__container");
         if (!lobby.hasClass("hide")) {
             lobby.addClass("hide");
@@ -378,11 +489,22 @@
     }   
 
     function leaveLobby() {
-
+        socket.send(JSON.stringify({
+            type: "leaveLobby",
+            lobby: lobbyCode,
+            name: user.name
+        }));  
     }
 
     function displayLeavingLobby() {
-
+        let lobby = $(".lobby__container");
+        if (lobby.hasClass("hide")) {
+            lobby.removeClass("hide");
+        }
+        let joinedLobby = $(".joined_lobby__container_main");
+        if (!joinedLobby.hasClass("hide")) {
+            joinedLobby.addClass("hide");
+        }
     }
 
     function displayCodeAlreadyExists() {
