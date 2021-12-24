@@ -179,8 +179,16 @@
 <script>
 
     //const socket = new WebSocket("ws://" ); // use ws or wss protocol?
-    const socket = new WebSocket("ws://" + window.location.href.split("//")[1]);
-
+    var wsProtocol;
+    if (window.location.protocol !== 'https:' || window.location.hostname == "localhost") {
+        console.log("insecure connection")
+        wsProtocol = "ws://";
+    } else {
+        console.log("secure connection")
+        wsProtocol = "wss://";
+    }
+    const socket = new WebSocket(wsProtocol + window.location.href.split("//")[1]);
+    
     const challengePrefix = "challenge";
     const challengeStatusClass = "challenge__status";
     const challengePClass = "challenge__paragraph";

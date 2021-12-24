@@ -229,7 +229,7 @@
     const maxPlayerCount = 2;
     var protocol;
 
-    if (window.location.protocol !== 'https:' || window.location.hostname !== "localhost") {
+    if (window.location.protocol !== 'https:' || window.location.hostname == "localhost") {
         console.log("insecure connection")
         wsProtocol = "ws://";
     } else {
@@ -237,7 +237,6 @@
         wsProtocol = "wss://";
     }
     const socket = new WebSocket(wsProtocol + window.location.href.split("//")[1]);
-    console.log(socket);
 
     const user = JSON.parse('<%- JSON.stringify(user) %>');
     var lobbyCode;
@@ -335,6 +334,7 @@
                 myTurn = false;
                 newRank = null;
                 forceDraw = false;
+                startedDrawing = false;
                 currentUpperCard = data.upperCard;
                 myCards = data.playerCards;
                 clearAllCards();

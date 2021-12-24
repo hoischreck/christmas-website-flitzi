@@ -769,6 +769,20 @@ h1 {
     height: 95%;
 }
 
+.memory_container_wrapper {
+    background-color: var(--darker-red);
+    padding: 2rem 0 2rem 0;
+    width: 90%;
+    border-radius: 20px;
+}
+
+.memory_card__container {
+    width: 200px;
+    height: 200px;
+    background-color: white;
+    border-radius: 8px;
+}
+
 /* .player_search_player__container {
     margin-bottom: 2rem;
     width: 50%;
