@@ -36,7 +36,7 @@ exports.UserData = function UserData(password) {
             wonGames: 0
         },
         2: {
-
+            memoryFinished: false
         },
         3: {
             challenges: {

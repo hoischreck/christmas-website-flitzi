@@ -95,10 +95,22 @@
     </section>
 
 <script>
-
     const presentRevealClass = "present_reveal__container";
     const hideCssClass = "hide";
     const animationCssClass = "present_reveal-animation";   
+
+    var protocol;
+
+        if (window.location.protocol !== 'https:' || window.location.hostname == "localhost") {
+            console.log("insecure connection")
+            wsProtocol = "ws://";
+        } else {
+            console.log("secure connection")
+            wsProtocol = "wss://";
+        }
+
+    const socket = new WebSocket(wsProtocol + window.location.href.split("//")[1]);
+    const user = JSON.parse('<%- JSON.stringify(user) %>');
 
     const waitTime = 1000;
     var images = JSON.parse('<%- JSON.stringify(images) %>');
@@ -107,6 +119,8 @@
 
     var selectedCard = null;
     var selectedTwo = false;
+
+    const memoryWasFinished = user.info.additionalPresentData[2].memoryFinished;
 
     function onCardClick(event) {
         if (selectedTwo) return;
@@ -127,7 +141,13 @@
                 memoryState[path] = true;
                 selectedCard = null;
                 selectedTwo = false;
-                if (checkIfWon()) _revealPresent();
+                if (checkIfWon()) {
+                    _revealPresent();
+                    socket.send(JSON.stringify({
+                        type: "finishedMemory",
+                        userName: user.name
+                    }))
+                };
             } else {
                 setTimeout(() => {
                     flipCard.removeClass("stay-rotated");
@@ -171,13 +191,17 @@
         flipCardInner.appendChild(flipCardFront);
         flipCardInner.appendChild(flipCardBack);
         container.append(flipCard);
+
+        if (memoryWasFinished) {
+            flipCard.classList.add("stay-rotated");
+        }        
     }
 
 
     function setupMemory() {
         for (let i in images) {
             let imagePath = images[i];
-            memoryState[imagePath] = false;
+            memoryState[imagePath] = memoryWasFinished;
             memoryArray.push(imagePath);
             memoryArray.push(imagePath);
         }
@@ -185,6 +209,7 @@
         for (let i in memoryArray) {
             addMemoryCard(memoryArray[i]);
         }
+        if (checkIfWon()) _revealPresent();
     }
 
     function shuffleArray(array) {
@@ -220,6 +245,32 @@
             presentElement.classList.remove(animationCssClass);
         }, 500)
     }
+
+    window.addEventListener("unload", function () {
+        if (socket.readyState == WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                type: "closeConnection",
+                name: user.name
+            }))
+        }   //socket.close(); //connection is closed by server
+    });
+
+    socket.addEventListener("open", (event) => {
+            socket.send(JSON.stringify({
+                type: "newUser",
+                presentNum: 1,
+                userName: user.name,
+                date: Date.now()
+            }));
+        })
+
+    socket.addEventListener("message", (event) => {
+            let data = JSON.parse(event.data);
+            console.log(data)
+            switch (data.type) {
+                
+            }
+    })
 
 </script>
 

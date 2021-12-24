@@ -255,6 +255,11 @@ wss.on("connection", (socket) => {
             case "closeConnection":
                 myServer.closeClient(data.name);
                 break;
+
+            case "finishedMemory":
+                myServer.users[data.userName].additionalPresentData[2].memoryFinished = true;
+                myServer._updateData();
+                break;
         }  
     })
 })
