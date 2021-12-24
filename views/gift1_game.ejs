@@ -227,14 +227,18 @@
     const animationCssClass = "present_reveal-animation";
 
     const maxPlayerCount = 2;
+    var protocol;
 
-    if (window.location.protocol !== 'https:') {
-        const socket = new WebSocket("ws://" + window.location.href.split("//")[1]);
+    if (window.location.protocol !== 'https:' || window.location.hostname !== "localhost") {
+        console.log("insecure connection")
+        wsProtocol = "ws://";
     } else {
-            const socket = new WebSocket("wss://" + window.location.href.split("//")[1]);
-
+        console.log("secure connection")
+        wsProtocol = "wss://";
     }
-    
+    const socket = new WebSocket(wsProtocol + window.location.href.split("//")[1]);
+    console.log(socket);
+
     const user = JSON.parse('<%- JSON.stringify(user) %>');
     var lobbyCode;
 
@@ -249,6 +253,8 @@
             }))
         }   //socket.close(); //connection is closed by server
     });
+
+    
 
     socket.addEventListener("open", (event) => {
         socket.send(JSON.stringify({
