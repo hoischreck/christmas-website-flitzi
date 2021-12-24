@@ -38,10 +38,13 @@
                 <br>
                 Es wird "MauMau" gespielt und die Regeln lauten wie folgt:
                 <br>
-                Es wird abwechselnd gespielt. Liegt zu Beginn keine Karte, kann jede Karte abgelegt werden. Andernfalls muss eine Karte gespielt werden, bei der entweder der Rang oder der Wert mit der liegenden Karte übereinstimmt.
+                Es wird abwechselnd gespielt. Liegt zu Beginn keine Karte, kann jede Karte abgelegt werden. Andernfalls muss eine Karte gespielt werden, bei der entweder der Rang oder der Wert mit der liegenden Karte übereinstimmt (Ausnahme: Jack).
                 Ist man nicht in der Lage eine Karte abzulegen, wird gezogen. Der Zug ist vorbei. Gewonnen hat, wer zuerst keine Karten mehr hat.
                 <br>
-                <u>Sonderfälle:</u> Bei einem Jack oder auch Bube genannt, darf man den zu spielenden Rang beliebig neuwählen. Wird eine 7 gelegt, dann muss der gegenüber 2 ziehen, bzw. dieser kann kontern, sodass wiederum 2 mehr gezogen werden müssen.
+                <u>Sonderfälle:</u> Bei einem Jack oder auch Bube genannt, darf man den zu spielenden Rang beliebig neuwählen. Wird eine 7 gelegt, dann muss der gegenüber 2 ziehen, bzw. dieser kann kontern, sodass wiederum 2 mehr gezogen werden müssen. Bei einem Ass setzt der Gegenspieler aus.
+                <br>
+                <br>
+                Du musst mindestens 5 mal gewinnen, um dein Geschenk zu erhalten.
             </p>
         </div>
         <!-- Add input here, so that user has to enter "Mau Mau" -->
@@ -375,6 +378,7 @@
 
             case "gameWon":
                 displayGameStop();
+                toggleReady(false);
                 displayFeedback("<span style='color: var(--success-green); font-size: 2rem;'><b>Du hast gewonnen :) !</b></span>", 10000);
                 socket.send(JSON.stringify({
                     type: "updateWinCounter",
@@ -384,6 +388,7 @@
 
             case "gameLost":
                 displayGameStop();
+                toggleReady(false);
                 displayFeedback("<span style='color: var(--error-red); font-size: 2rem;'><b>Du hast verloren :/ !</b></span>", 10000);
                 break;
 
@@ -519,12 +524,12 @@
         // basice maumau ruleset
         if (currentUpperCard !== null) {
             if (newRank !== null) {
-                if (newRank !== card.rank && card.value !=  "jack") return;
+                if (newRank !== card.rank && card.value != "jack") return;
             } else if (forceDraw) {
                 if (card.value != "7") return;
             } 
             else {
-                if (card.value != currentUpperCard.value && card.rank != currentUpperCard.rank) return;
+                if (card.value != currentUpperCard.value && card.rank != currentUpperCard.rank && card.value != "jack") return;
             }       
         }
         // card can be placed
@@ -535,7 +540,8 @@
             upperCard: currentUpperCard
         }))
         myTurn = false;
-        displayEnemyTurn();
+        
+        if (card.value != "jack") displayEnemyTurn();
     }
 
     function onCardDraw() {
@@ -628,7 +634,7 @@
             let newCard = document.createElement("div");
             newCard.classList.add("card");
             newCard.classList.add("card-raise");
-            newCard.setAttribute("href", path)
+            newCard.setAttribute("href", path);
             newCard.onclick = onCardClick;
             newCard.style.backgroundImage = `url(${path})`;
             newCardContainer.appendChild(newCard);
@@ -803,9 +809,15 @@
         }, 5000)
     }
 
-    function toggleReady() {
+    function toggleReady(readyStateOverride=null) {
         let btn = $("#joined_lobby_ready__btn");
-        let ready = btn.hasClass("btn-ready");
+        let ready;
+        if (readyStateOverride === null) {
+            ready = btn.hasClass("btn-ready");
+        } else {
+            ready = readyStateOverride;
+        }
+        
         if (ready) {
             // send ready
             btn.removeClass("btn-ready");

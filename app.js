@@ -1,6 +1,7 @@
 var express = require("express");
 var bodyParser = require("body-parser");
 var session = require("express-session");
+var fs = require("fs");
 
 const { MyServer, addUserCommandUpt } = require("./server");
 const { json, raw } = require("body-parser");
@@ -51,6 +52,7 @@ app.set("view engine", "ejs");
 
 // use middleware 
 app.use(express.static(__dirname + "/assets"));
+app.use("/gift2", express.static(__dirname + "/assets_memory"));
 app.use(session({
     secret: "env variable", //todo: add real secret key
     resave: false,
@@ -126,7 +128,7 @@ app.get("/gift2", (req, res) => {
     if (!authGiftUnlock(req, res, 2)) return;
 
     var args = {};
-    res.render("gift2_picture");
+    res.render("gift2_picture", { user: req.session.user, images: fs.readdirSync(__dirname + '/assets_memory')});
 
 })
 

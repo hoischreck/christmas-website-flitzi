@@ -6,7 +6,7 @@ const { all } = require("express/lib/application");
 const cardDir = __dirname + "/assets/img/cards";
 
 exports.Manager = class MauMauLobbyManager {
-    static mustWin = 3;
+    static mustWin = 5;
 
     constructor(myServer) {
         this.myServer = myServer;
@@ -268,12 +268,11 @@ class Lobby {
     }
 
     endGame() {
-        this.game.end();
-        for (let p in this.players) {
-            this.readyPlayer(this.players[p].name, false);
-        }
-        this.updateClientLobbies();
+        console.log("officially ending game");
+        this.game.end(); 
+        // toggle ready is done by client
         delete this.game;
+        this.updateClientLobbies();
     }
 
     isFull() {
@@ -329,11 +328,12 @@ class MauMauGame {
 
     constructor(playerLobby) {
         this.lobby = playerLobby;
+        this._instructions;
         this._addInstructions();
     }
 
     gameInstructions(game) {
-        function onMessage(rawData) {
+        game._instructions = function onMessage(rawData) {
             var data = JSON.parse(rawData.toString());
             switch (data.type) {
                 case "playCard":
@@ -385,7 +385,7 @@ class MauMauGame {
                     break;
             }
         }
-        return onMessage;
+        return game._instructions;
     }
 
     updateRankOverride(newRank) {
@@ -417,17 +417,17 @@ class MauMauGame {
             this.notifyNextTurn(false, "chooseNewRank");
         } else if (playedCard.value == "7") {
             // notfiy next player to draw cards
-            console.log("played a 7")
             if (this.drawsLeft == 1 && !this.startedDrawing) {
                 this.drawsLeft = MauMauGame.drawConstant;
             } else {
                 this.drawsLeft += MauMauGame.drawConstant;
             }
             
-            console.log("must draw: " + this.drawsLeft);
             this.forceDraw = true;
             this.updateAllPlayers();
             this.notifyNextTurn(true, "forceDraw", false);
+        } else if (playedCard.value == "ace") {
+            this.notifyNextTurn(false, null, false, true);
         } else {
             // next players turn
             this.notifyNextTurn();
@@ -450,6 +450,7 @@ class MauMauGame {
     //todo: test this
     start() {
         // init all cards (set also possible)
+        console.log("init new game");
         this.deckCards = [];
         this.playedCards = [];
         this.upperCard = null;
@@ -493,7 +494,7 @@ class MauMauGame {
         }
     }
 
-    notifyNextTurn(nextPlayer=true, specialAction=null, resetDraws=true) {
+    notifyNextTurn(nextPlayer=true, specialAction=null, resetDraws=true, forceDrawReset=false) {
         if (nextPlayer) {
             if (this.currenPlayerIndx < this.activePlayers.length-1) {
                 this.currenPlayerIndx++;
@@ -503,6 +504,9 @@ class MauMauGame {
             this.turnPlayer = this.activePlayers[this.currenPlayerIndx];
             if (resetDraws) this.drawsLeft = 1;
         }
+
+        //todo: dirty solution (but no time)
+        if (forceDrawReset) this.drawsLeft = 1;
 
         this.turnPlayer.socket.send(JSON.stringify({
             type: "playerTurn",
@@ -517,6 +521,7 @@ class MauMauGame {
         if (this.awaitingRankOverride) return;
         if (this.upperCard === null && upperCard !== null) return false;
         if (this.upperCard !== null) {
+            console.log(this.upperCard);
             if (this.upperCard.path != upperCard.path) return false;
         }
         let hasCard = false;
@@ -530,7 +535,7 @@ class MauMauGame {
         if (this.rankOverride !== null) {
             if (this.rankOverride != playerCard.rank && playerCard.value != "jack") return false;
         } else {
-            if (this.upperCard !== null && this.upperCard.rank != playerCard.rank && this.upperCard.value != playerCard.value) return false;
+            if (this.upperCard !== null && this.upperCard.rank != playerCard.rank && this.upperCard.value != playerCard.value && playerCard.value != "jack") return false;
         }
         if (this.startedDrawing) return false;
         if (this.forceDraw) {
@@ -629,7 +634,8 @@ class MauMauGame {
 
     _removeInstructions() {
         for (let p in this.lobby.players) {
-            this.lobby.players[p].socket.removeListener("message", this.gameInstructions(this));
+            console.log("trying to remove listener");
+            this.lobby.players[p].socket.removeListener("message", this._instructions);
         }
     }
 }

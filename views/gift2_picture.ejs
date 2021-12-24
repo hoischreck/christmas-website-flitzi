@@ -5,9 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/style.css" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <title>Geschenk Nr.2</title>
 </head>
-<body>
+<body onload="setupMemory()">
 
     <!-- Navigation Bar -->
     
@@ -35,17 +36,192 @@
             <!-- Add input here, so that user has to enter "Mau Mau" -->
         </div>
 
-        <div class="memory_container_wrapper flex-column flex-xy">
-            <div class="flex-row flex-xy">
+        <div class="memory_container_wrapper flex-column flex-xy" style="margin-top: 2.5rem;">
+            <div class="memory_grid">
+                <div class="memory_container flex-row flex-xy">
+                
+                    <!-- <div class="flip-card allow-rotation stay-rotated">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                Memory card
+                            </div>
+                            <div class="flip-card-back">
+                                <img src="img_avatar.png" alt="Avatar">
+                            </div>
+                        </div>
+                    </div> -->
 
-                <div class="memory_card__container">
-                    Das ist eine memory karte
                 </div>
-
             </div>
+            
+        </div>
+
+        <div class="present_reveal__container hide" style="margin-top: 1.5rem;" ;>
+            <p class="present_reveal__paragraph">
+                Wow, das hast du klasse gemacht! Ich wusste doch, dass du das schaffst!
+                <br>
+                Dafür sollst du belohnt werden:
+                <br>
+                Ich denke die Bilder waren eine gute Inspiration, um dich auf dein Geschenk vorzubereiten:
+                <br>
+                Du darfst dir ein beliebiges Bild aussuchen, woraufhin ich dieses für deinen Anhänger im passenden Format drucke und zuschneide.
+                <br>
+                <br>
+                Jetzt hast du es ja fast geschafft. Es fehlt nur noch ein Geschenk, jetzt wird es bestimmt einfacher :).
+            </p>
+        
+            <div class="flex-row flex-xy present_code__container">
+                <div class="intro__container_text present_code__text_container">
+                    <p class="intro__paragraph">
+                        <b>Der dritte Code lautet:</b>
+                    </p>
+                    <div class="present_code__code_container">
+                        <%= user.info.presentCodes[3] %>
+                    </div>
+                </div>
+                <div class="present_btn__container">
+                    <a href="/gift3" class="present_btn__anchor">
+                        <div class="present_btn__anchor_container flex-xy">
+                            <img class="image-fill" src="/img/present.png" alt="Geschenk 3">
+                            <div class="present_btn__overlap">Geschenk Nr. 3</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        
+        
         </div>
 
     </section>
+
+<script>
+
+    const presentRevealClass = "present_reveal__container";
+    const hideCssClass = "hide";
+    const animationCssClass = "present_reveal-animation";   
+
+    const waitTime = 1000;
+    var images = JSON.parse('<%- JSON.stringify(images) %>');
+    var memoryState = {};
+    var memoryArray = [];
+
+    var selectedCard = null;
+    var selectedTwo = false;
+
+    function onCardClick(event) {
+        if (selectedTwo) return;
+        let flipFront = event.target;
+        let path = flipFront.getAttribute("href");
+        
+        let flipCard = $(flipFront).parent().parent();
+
+        if (flipCard.hasClass("stay-rotated")) return;
+
+        flipCard.addClass("stay-rotated");        
+
+        if (selectedCard === null) {
+            selectedCard = {card: flipCard, imgPath: path};
+        } else {
+            selectedTwo = true;
+            if (selectedCard.imgPath == path) {
+                memoryState[path] = true;
+                selectedCard = null;
+                selectedTwo = false;
+                if (checkIfWon()) _revealPresent();
+            } else {
+                setTimeout(() => {
+                    flipCard.removeClass("stay-rotated");
+                    selectedCard.card.removeClass("stay-rotated");
+                    selectedCard = null;
+                    selectedTwo = false;
+                }, waitTime)
+            }
+        }
+    }
+
+    function checkIfWon() {
+        for (let i in memoryState) {
+            if (!memoryState[i]) return false;
+        }
+        return true;
+    }
+
+    function addMemoryCard(imgRef) {
+        let container = $(".memory_container");
+        // let newCard = document.createElement("div");
+        // newCard.classList.add("memory_card__container");
+        // newCard.style.backgroundImage = `url(${imgRef})`;
+        // container.append(newCard);
+        let flipCard = document.createElement("div");
+        flipCard.classList.add("flip-card");
+        //flipCard.classList.add("allow-rotation"); //change
+        let flipCardInner = document.createElement("div");
+        flipCardInner.classList.add("flip-card-inner");
+        flipCard.appendChild(flipCardInner);
+        let flipCardFront = document.createElement("div");
+        let flipCardBack = document.createElement("div");
+        flipCardFront.classList.add("flip-card-front");
+        flipCardBack.classList.add("flip-card-back");
+
+        flipCardFront.onclick = onCardClick;
+
+        flipCardFront.setAttribute("href", imgRef);
+        flipCardBack.style.backgroundImage = `url(${imgRef})`;
+        
+        flipCardInner.appendChild(flipCardFront);
+        flipCardInner.appendChild(flipCardBack);
+        container.append(flipCard);
+    }
+
+
+    function setupMemory() {
+        for (let i in images) {
+            let imagePath = images[i];
+            memoryState[imagePath] = false;
+            memoryArray.push(imagePath);
+            memoryArray.push(imagePath);
+        }
+        memoryArray = shuffleArray(memoryArray);
+        for (let i in memoryArray) {
+            addMemoryCard(memoryArray[i]);
+        }
+    }
+
+    function shuffleArray(array) {
+        let arrayCopy = [];
+        for (let i in array) arrayCopy.push(array[i]);
+        let newArray = [];
+        let j = arrayCopy.length;
+        for (let i = 0; i < j; i++) {
+            newArray.push(randomPop(arrayCopy));
+        }
+        return newArray;
+    }
+
+    function randomPop(array) {
+        let i = Math.floor(Math.random() * array.length);
+        let item = array[i];
+        array.splice(i, 1);
+        return item;
+    }
+
+
+    // Not save but whatever
+    function _revealPresent() {
+        let presentElement = document.querySelector("." + presentRevealClass);
+        if (!presentElement.classList.contains(hideCssClass)) {
+            return;
+        }
+
+        presentElement.classList.remove(hideCssClass);
+        presentElement.classList.add(animationCssClass);
+
+        setTimeout(() => {
+            presentElement.classList.remove(animationCssClass);
+        }, 500)
+    }
+
+</script>
 
 </body>
 </html>
