@@ -45,9 +45,6 @@
             </p>
         </div>
         <!-- Add input here, so that user has to enter "Mau Mau" -->
-        
-        
-        <!-- Game of Romme -->
     </div>
 
     
@@ -231,8 +228,13 @@
 
     const maxPlayerCount = 2;
 
-    const socket = new WebSocket("ws://" + window.location.href.split("//")[1]);
+    if (window.location.protocol !== 'https:') {
+        const socket = new WebSocket("ws://" + window.location.href.split("//")[1]);
+    } else {
+            const socket = new WebSocket("wss://" + window.location.href.split("//")[1]);
 
+    }
+    
     const user = JSON.parse('<%- JSON.stringify(user) %>');
     var lobbyCode;
 
