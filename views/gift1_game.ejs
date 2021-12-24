@@ -34,6 +34,14 @@
                 Gesucht ist ein Kartenspiel, das große Ähnlichkeit mit UNO hat.
                 <br>
                 Was wird es wohl sein?
+                <br>
+                <br>
+                Es wird "MauMau" gespielt und die Regeln lauten wie folgt:
+                <br>
+                Es wird abwechselnd gespielt. Liegt zu Beginn keine Karte, kann jede Karte abgelegt werden. Andernfalls muss eine Karte gespielt werden, bei der entweder der Rang oder der Wert mit der liegenden Karte übereinstimmt.
+                Ist man nicht in der Lage eine Karte abzulegen, wird gezogen. Der Zug ist vorbei. Gewonnen hat, wer zuerst keine Karten mehr hat.
+                <br>
+                <u>Sonderfälle:</u> Bei einem Jack oder auch Bube genannt, darf man den zu spielenden Rang beliebig neuwählen. Wird eine 7 gelegt, dann muss der gegenüber 2 ziehen, bzw. dieser kann kontern, sodass wiederum 2 mehr gezogen werden müssen.
             </p>
         </div>
         <!-- Add input here, so that user has to enter "Mau Mau" -->
@@ -104,7 +112,7 @@
                                     <div class="card"></div>
                                 </div> -->
                 </div>
-                <div id="enemy_name" class="game__player_info game__player_info_enemy" style="margin-right: 3rem;">
+                <div id="enemy_name" class="game__player_info game__player_info_enemy">
                     Gegnername
                 </div>
             </div>
@@ -112,8 +120,11 @@
             <div class="game__container_field">
 
                 <div class="flex-row flex-xy">
-                    <div id="game__field_info_left" class="game__field_info" style="margin-right: 3rem; width: 20%;">
-                        
+                    <div id="game__field_info_left" class="game__field_info flex-column flex-xy invisible">
+                        <input class="btn-select-type" type="button" value="Pik" onclick="selectRank(this)">
+                        <input class="btn-select-type" type="button" value="Herz" onclick="selectRank(this)">
+                        <input class="btn-select-type" type="button" value="Karo" onclick="selectRank(this)">
+                        <input class="btn-select-type" type="button" value="Kreuz" onclick="selectRank(this)">
                     </div>
 
                     <div class="game__upper_card_container">
@@ -140,7 +151,7 @@
                                     <div class="card"></div>
                                 </div> -->
                 </div>
-                <div class="game__player_info" style="margin-right: 3rem; background-color: var(--dark-green);">
+                <div id="rank_override" class="game__player_info game__player_info_enemy" style="margin-right: 3rem; background-color: var(--success-green);">
                     
                 </div>
             </div>
@@ -166,12 +177,57 @@
 
     </div>
 
+    <div class="container-secondary counter_container flex-xy">
+        <div class="intro__container_text counter_inner">
+            Siege gesamt: 
+        </div>
+    </div>
+
+    <div class="present_reveal__container hide" style="margin-top: 1.5rem;";>
+        <p class="present_reveal__paragraph">
+            Du hast es tatsächlich geschafft!
+            <br>
+            Dafür sollst du belohnt werden. Wir haben nun etbaliert, dass du auf jeden Fall viel Gefallen an Spielen findest, die man in Gesellschaft spielt.
+            <br>
+            Daher bekommst du als erstes ein Spiel von mir geschenkt, indem man tiefgründige über einander Fragen beantworten. Dennoch muss ich dich zunächst enttäuschen.
+            Das heißt: genauere Details wirst du später erhalten.
+            <br>
+            <br>
+            Hier geht es jetzt auch direkt weiter zum nächsten Geschenk.
+        </p>
+
+        <div class="flex-row flex-xy present_code__container">
+            <div class="intro__container_text present_code__text_container">
+                <p class="intro__paragraph">
+                    <b>Der zweite Code lautet:</b>
+                </p>
+                <div class="present_code__code_container">
+                    <%= user.info.presentCodes[2] %>
+                </div>
+            </div>
+            <div class="present_btn__container">
+                <a href="/gift2" class="present_btn__anchor">
+                    <div class="present_btn__anchor_container flex-xy">
+                        <img class="image-fill" src="/img/present.png" alt="Geschenk 2">
+                        <div class="present_btn__overlap">Geschenk Nr. 2</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+
+    </div>
+
 
 <script>
     // add server side commands to overview lobbies, etc
     // kick from lobby when connecting with new client
     const playerSearchContainerClass = "player_search__container";
     const playerDivClass = "player_search_player__container";
+
+    const presentRevealClass = "present_reveal__container";
+    const hideCssClass = "hide";
+    const animationCssClass = "present_reveal-animation";
 
     const maxPlayerCount = 2;
 
@@ -203,6 +259,11 @@
         socket.send(JSON.stringify({
                 type: "joinMauMauPlayerSearch",
             }));
+
+        socket.send(JSON.stringify({
+            type: "updateWinCounter",
+            playerName: user.name
+        }))
     })
 
 
@@ -222,8 +283,11 @@
         switch (data.type) {
             // case "terminatingConnection":
             //     console.log("termination");
-            //     displayTerminatedConnection(data.reason);
+            //     displayFeedback(data.reason);
             //     break;
+            case "setWinCounter":
+                setWinCounter(data.wins);
+                break;
 
             case "addedLobby":
                 displaySuccessfullyAddedLobby();
@@ -246,14 +310,10 @@
 
             case "updateLobby":
                 console.log("update call")
-                let players = [];
-                for (let i in data.players) {
-                    players.push(data.players[i].name);
-                }
                 lobbyCode = data.code;
                 displayJoinedLobby(
                     lobbyCode = lobbyCode,
-                    playerList = players,
+                    playerList = data.players,
                     lobbySize = data.lobbySize,
                     readyCount = data.readyCount
                 );
@@ -265,7 +325,10 @@
                 break;
 
             case "updateCardView":
+                // init basic values
                 myTurn = false;
+                newRank = null;
+                forceDraw = false;
                 currentUpperCard = data.upperCard;
                 myCards = data.playerCards;
                 clearAllCards();
@@ -273,6 +336,18 @@
                 displayField(data.remainingInDeck, data.upperCard);
                 // since 1v1 -> only 1 enemy
                 displayEnemyCards(Object.values(data.enemyCardAmount)[0]);
+                if (data.rankOverride !== null) {
+                    newRank = data.rankOverride;
+                    displayRankOverride(data.rankOverride);
+                } else {
+                    displayNoRankOverride();
+                }
+                if (data.forceDraw && data.drawsLeft > 0) {
+                    startedDrawing = data.startedDrawing;
+                    displayForceDraw(data.drawsLeft);
+                } else {
+                    displayNoForceDraw();
+                }
 
                 $("#remaining_cards").html(data.remainingInDeck);
                 $("#enemy_name").html(Object.keys(data.enemyCardAmount)[0]);
@@ -282,9 +357,43 @@
             case "playerTurn":
                 drawsLeft = data.drawsLeft;
                 myTurn = true;
+                overrideRank = false;
+                if (data.additional == "chooseNewRank") {
+                    displayRankSelection();
+                    overrideRank = true;
+                } else if (data.additional == "forceDraw") {
+                    forceDraw = true;
+                }
                 displayPlayerTurn();
                 break;
 
+            case "gameWon":
+                displayGameStop();
+                displayFeedback("<span style='color: var(--success-green); font-size: 2rem;'><b>Du hast gewonnen :) !</b></span>", 10000);
+                socket.send(JSON.stringify({
+                    type: "updateWinCounter",
+                    playerName: user.name
+                }))
+                break;
+
+            case "gameLost":
+                displayGameStop();
+                displayFeedback("<span style='color: var(--error-red); font-size: 2rem;'><b>Du hast verloren :/ !</b></span>", 10000);
+                break;
+
+            case "unlockPresent":
+                var presentElement = document.querySelector("." + presentRevealClass);
+                if (!presentElement.classList.contains(hideCssClass)) {
+                    return;
+                }
+
+                presentElement.classList.remove(hideCssClass);
+                presentElement.classList.add(animationCssClass);
+
+                setTimeout(() => {
+                    presentElement.classList.remove(animationCssClass);
+                }, 500)
+                break;
         }
     })
 
@@ -292,27 +401,86 @@
     var myCards;
     var currentUpperCard;
     var drawsLeft;
+    var overrideRank;
+    var newRank;
+    var forceDraw;
+    var startedDrawing;
+
+    function displayForceDraw(cardAmount) {
+        let info = $("#rank_override");
+        info.removeClass("invisible");
+        info.html("Ziehe: " + cardAmount);
+    }
+
+    var displayNoForceDraw = displayNoRankOverride;
+
+    function displayRankOverride(newRank) {
+        console.log("trying to visualize new rank")
+        let rank;
+        for (let r in rankTable) {
+            if (rankTable[r] == newRank) {
+                rank = r;
+                break;
+            }   
+        }
+        console.log("neuer Rang: " + rank);
+        let info = $("#rank_override");
+        info.removeClass("invisible");
+        info.html("Neuer Rang: " + rank);
+    }
+
+    function displayNoRankOverride() {
+        let info = $("#rank_override");
+        info.addClass("invisible");
+    }
+
+    function displayRankSelection() {
+        let leftFieldInfo = $("#game__field_info_left");
+        leftFieldInfo.removeClass("invisible");
+        
+    }
+
+    function displayRemoveRankSelection() {
+        let leftFieldInfo = $("#game__field_info_left");
+        leftFieldInfo.addClass("invisible");
+    }
+
+    const rankTable = {
+        Pik: "spades",
+        Karo: "diamonds",
+        Herz: "hearts",
+        Kreuz: "clubs"
+    }
+
+    function selectRank(element) {
+        if (!overrideRank) return;
+        console.log(element);
+        let selectedRank = element.value;
+        console.log("selected rank:" + selectedRank);
+        socket.send(JSON.stringify({
+            type: "rankOverride",
+            playerName: user.name,
+            newCardRank: rankTable[selectedRank]
+        }))
+        displayRemoveRankSelection();
+        displayEnemyTurn();
+    }
+
 
     function displayPlayerTurn() {
         let enemy = $("#enemy_turn");
         let player = $("#player_turn");
-        if (!enemy.hasClass("game__turn-inactive")) {
-            enemy.addClass("game__turn-inactive");
-            enemy.html("Nicht am Zug")
-        }
-        if (player.hasClass("game__turn-inactive")) {
-            player.removeClass("game__turn-inactive");
-            player.html("Am Zug");
-        }
+        enemy.addClass("game__turn-inactive");
+        enemy.html("Nicht am Zug")
+        player.removeClass("game__turn-inactive");
+        player.html("Am Zug");
     }
 
     function displayEnemyTurn() {
         let enemy = $("#enemy_turn");
         let player = $("#player_turn");
-        if (enemy.hasClass("game__turn-inactive")) {
-            enemy.removeClass("game__turn-inactive");
-            enemy.html("Am Zug")
-        }
+        enemy.removeClass("game__turn-inactive");
+        enemy.html("Am Zug")
         if (!player.hasClass("game__turn-inactive")) {
             player.addClass("game__turn-inactive");
             player.html("Nicht am Zug");
@@ -322,18 +490,18 @@
     function displayEnemyDisconnect() {
         displayGameStop();
         displayLeavingLobby();
-        displayTerminatedConnection("Player 2 disconnected");
+        displayFeedback("<b>Player 2 disconnected</b>");
         setTimeout(() => {
-            displayNoTerminatedConnecion();
+            displayNoFeedback();
         }, 10000)
     }
 
     function onCardClick(event) {
         if (!myTurn) return;
+        if (overrideRank) return;
         let cardElement = event.target;
         let path = cardElement.getAttribute("href");
         let card;
-        console.log("trying to find card")
         for (let c in myCards) {
             if (myCards[c].path == path) {
                 card = myCards[c];
@@ -347,7 +515,11 @@
 
         // basice maumau ruleset
         if (currentUpperCard !== null) {
-            if (card.value != currentUpperCard.value && card.rank != currentUpperCard.rank) return;
+            if (newRank !== null) {
+                if (newRank !== card.rank && card.value !=  "jack") return;
+            } else {
+                if (card.value != currentUpperCard.value && card.rank != currentUpperCard.rank) return;
+            }       
         }
         // card can be placed
         socket.send(JSON.stringify({
@@ -362,6 +534,7 @@
 
     function onCardDraw() {
         if (!myTurn) return;
+        if (overrideRank) return;
         socket.send(JSON.stringify({
             type: "drawCard",
             playerName: user.name
@@ -399,6 +572,7 @@
 
     const cardWidth = parseInt(window.getComputedStyle(document.body).getPropertyValue("--card-width").replace("px", ""));
 
+    //todo: delete this
     displayEnemyCards(7);
     displayPlayerCards([{ path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }])
     displayField(5, { path: "/img/cards/blue.png" });
@@ -511,15 +685,25 @@
     // }
 
     function displayTerminatedConnection(reason) {
+        displayLeavingLobby();
+        displayFeedback(`<b><u>Error!</u></b><br><b>${reason}</b>`);
+
+    }
+
+    function displayFeedback(feedbackHTML, time=null) {
         let errorContainer = $("#terminatedConnection");
         if (errorContainer.hasClass("hide")) {
             errorContainer.removeClass("hide");
         }
-        displayLeavingLobby();
-        $("#error_paragraph").html(`<b><u>Error!</u></b><br><b>${reason}</b>`)
+        $("#error_paragraph").html(feedbackHTML);
+        if (time !== null) {
+            setTimeout(() => {
+                displayNoFeedback();
+            }, time)   
+        }
     }
 
-    function displayNoTerminatedConnecion() {
+    function displayNoFeedback() {
         let errorContainer = $("#terminatedConnection");
         if (!errorContainer.hasClass("hide")) {
             errorContainer.addClass("hide");
@@ -606,6 +790,9 @@
         if (!element2.hasClass("hide")) {
             element2.addClass("hide");
         }
+        setTimeout(() => {
+            element1.addClass("hide");
+        }, 5000)
     }
 
     function displaySuccessfullyAddedLobby() {
@@ -617,6 +804,9 @@
         if (element2.hasClass("hide")) {
             element2.removeClass("hide");
         }
+        setTimeout(() => {
+            element2.addClass("hide");
+        }, 5000)
     }
     
     function displayCouldNotJoin() {
@@ -624,6 +814,9 @@
         if (element.hasClass("hide")) {
             element.removeClass("hide");
         }
+        setTimeout(() => {
+            element.addClass("hide");
+        }, 5000)
     }
 
     function toggleReady() {
@@ -650,6 +843,10 @@
                 lobby: lobbyCode
             }))
         }
+    }
+
+    function setWinCounter(wins) {
+        $(".counter_inner").html("<b>Siege insgesamt: </b>" + wins)
     }
 
 
