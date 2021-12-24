@@ -240,6 +240,10 @@ section {
     display: none !important;
 }
 
+.invisible {
+    opacity: 0 !important;
+}
+
 .important {
      font-weight: bold;
 }
@@ -492,10 +496,15 @@ h1 {
 }
 
 .present_reveal__container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     color: var(--white);
     width: 85%;
     border-radius: 10px;
     background-color: var(--dark-green);
+    padding-bottom: 1rem;
 }
 
 .present_reveal__paragraph {
@@ -591,7 +600,7 @@ h1 {
     padding: 2rem 0 2rem 0;
     width: 90%;
     border-radius: 20px;
-    height: 95vh;
+    height: 105vh;
 }
 
 .game__container {
@@ -644,6 +653,9 @@ h1 {
 
 #game__field_info_left {
     background-color: var(--dark-gray);
+    margin-right: 3rem; 
+    width: 20%;
+    font-size: 1.5rem;
 }
 
 .game__field_info {
@@ -655,6 +667,19 @@ h1 {
     padding: 1.2rem 2rem 1.2rem 2rem;
     border-radius: 30px;
     color: var(--white);
+}
+
+.btn-select-type {
+    width: 150px;
+    height: 40px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.btn-select-type:first-child {
+    margin-top: 20px;
 }
 
 .game__turn_info {
@@ -729,6 +754,19 @@ h1 {
 
 .game__deck_card_container {
     width: var(--card-width);
+}
+
+.counter_container {
+    margin-top: 2rem;
+    width: 30%;
+    padding: 0;
+}
+
+.counter_inner {
+    padding: 1rem 2rem 1rem 2rem;
+    margin: 1rem;
+    width: 95%;
+    height: 95%;
 }
 
 /* .player_search_player__container {

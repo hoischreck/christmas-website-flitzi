@@ -270,9 +270,7 @@
     socket.addEventListener("close", (event) => {
         displayTerminatedConnection("Only 1 continuous connection allowed");
         let lobby = $(".lobby__container");
-        if (!lobby.hasClass("hide")) {
-            lobby.addClass("hide");
-        }
+        lobby.addClass("hide");
     })
     // allow leaving a lobby with a button click
 
@@ -346,7 +344,7 @@
                     startedDrawing = data.startedDrawing;
                     displayForceDraw(data.drawsLeft);
                 } else {
-                    displayNoForceDraw();
+                    if (data.rankOverride === null) displayNoForceDraw();
                 }
 
                 $("#remaining_cards").html(data.remainingInDeck);
@@ -454,9 +452,7 @@
 
     function selectRank(element) {
         if (!overrideRank) return;
-        console.log(element);
         let selectedRank = element.value;
-        console.log("selected rank:" + selectedRank);
         socket.send(JSON.stringify({
             type: "rankOverride",
             playerName: user.name,
@@ -481,10 +477,8 @@
         let player = $("#player_turn");
         enemy.removeClass("game__turn-inactive");
         enemy.html("Am Zug")
-        if (!player.hasClass("game__turn-inactive")) {
-            player.addClass("game__turn-inactive");
-            player.html("Nicht am Zug");
-        }
+        player.addClass("game__turn-inactive");
+        player.html("Nicht am Zug");
     }
 
     function displayEnemyDisconnect() {
@@ -499,6 +493,7 @@
     function onCardClick(event) {
         if (!myTurn) return;
         if (overrideRank) return;
+        if (startedDrawing) return;
         let cardElement = event.target;
         let path = cardElement.getAttribute("href");
         let card;
@@ -517,7 +512,10 @@
         if (currentUpperCard !== null) {
             if (newRank !== null) {
                 if (newRank !== card.rank && card.value !=  "jack") return;
-            } else {
+            } else if (forceDraw) {
+                if (card.value != "7") return;
+            } 
+            else {
                 if (card.value != currentUpperCard.value && card.rank != currentUpperCard.rank) return;
             }       
         }
@@ -547,25 +545,18 @@
 
     function displayGameStart() {
         let lobby = $(".joined_lobby__container_main");
-        if (!lobby.hasClass("hide")) {
-            lobby.addClass("hide");
-        } 
+        lobby.addClass("hide");
         let game = $(".game__container-secondary");
-        if (game.hasClass("hide")) {
-            game.removeClass("hide");
-        } 
+        game.removeClass("hide");
+
         displayEnemyTurn();
     }
 
     function displayGameStop() {
         let game = $(".game__container-secondary");
         let lobby = $(".joined_lobby__container_main");
-        if (lobby.hasClass("hide")) {
-            lobby.removeClass("hide");
-        }
-        if (!game.hasClass("hide")) {
-            game.addClass("hide");
-        } 
+        lobby.removeClass("hide");
+        game.addClass("hide");
     }
 
     // displayPlayerCards([{ path: "/img/cards/blue.png" }, { path: "/img/cards/blue.png" }]);
@@ -692,9 +683,7 @@
 
     function displayFeedback(feedbackHTML, time=null) {
         let errorContainer = $("#terminatedConnection");
-        if (errorContainer.hasClass("hide")) {
-            errorContainer.removeClass("hide");
-        }
+        errorContainer.removeClass("hide");
         $("#error_paragraph").html(feedbackHTML);
         if (time !== null) {
             setTimeout(() => {
@@ -705,9 +694,7 @@
 
     function displayNoFeedback() {
         let errorContainer = $("#terminatedConnection");
-        if (!errorContainer.hasClass("hide")) {
-            errorContainer.addClass("hide");
-        }
+        errorContainer.addClass("hide");
     }
 
     // create new lobby
@@ -740,13 +727,10 @@
 
     function displayJoinedLobby(lobbyCode, playerList, lobbySize, readyCount) {
         let lobby = $(".lobby__container");
-        if (!lobby.hasClass("hide")) {
-            lobby.addClass("hide");
-        }
+        lobby.addClass("hide");
         let joinedLobby = $(".joined_lobby__container_main");
-        if (joinedLobby.hasClass("hide")) {
-            joinedLobby.removeClass("hide");
-        }
+        joinedLobby.removeClass("hide");
+        
         $(".joined_lobby_info__container").html(
             `
             <b>Code: </b>${lobbyCode}
@@ -772,24 +756,19 @@
 
     function displayLeavingLobby() {
         let lobby = $(".lobby__container");
-        if (lobby.hasClass("hide")) {
-            lobby.removeClass("hide");
-        }
+        lobby.removeClass("hide");
+        
         let joinedLobby = $(".joined_lobby__container_main");
-        if (!joinedLobby.hasClass("hide")) {
-            joinedLobby.addClass("hide");
-        }
+        joinedLobby.addClass("hide");
     }
 
     function displayCodeAlreadyExists() {
         let element1 = $("#codeAlreadyExists");
-        if (element1.hasClass("hide")) {
-            element1.removeClass("hide");
-        }
+        element1.removeClass("hide");
+        
         let element2 = $("#addedLobby");
-        if (!element2.hasClass("hide")) {
-            element2.addClass("hide");
-        }
+        element2.addClass("hide");
+        
         setTimeout(() => {
             element1.addClass("hide");
         }, 5000)
@@ -797,13 +776,11 @@
 
     function displaySuccessfullyAddedLobby() {
         let element1 = $("#codeAlreadyExists");
-        if (!element1.hasClass("hide")) {
-            element1.addClass("hide");
-        }
+        element1.addClass("hide");
+        
         let element2 = $("#addedLobby");
-        if (element2.hasClass("hide")) {
-            element2.removeClass("hide");
-        }
+        element2.removeClass("hide");
+        
         setTimeout(() => {
             element2.addClass("hide");
         }, 5000)
@@ -811,9 +788,8 @@
     
     function displayCouldNotJoin() {
         let element = $("#couldNotJoin");
-        if (element.hasClass("hide")) {
-            element.removeClass("hide");
-        }
+        element.removeClass("hide");
+        
         setTimeout(() => {
             element.addClass("hide");
         }, 5000)

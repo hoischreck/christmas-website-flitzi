@@ -33,7 +33,7 @@ exports.UserData = function UserData(password) {
     }
     this.additionalPresentData = {
         1: {
-
+            wonGames: 0
         },
         2: {
 
@@ -46,7 +46,8 @@ exports.UserData = function UserData(password) {
                     3: false,
                     4: false,
                     5: false,
-                    6: false
+                    6: false,
+                    7: false
                 }
             }
         },
@@ -168,7 +169,7 @@ exports.MyServer = class MyServer {
     }
 
     setPresentCodes(name, ...codes) {
-        for (i = 1; i < MyServer.PRESENT_COUNT + 1; i++) {
+        for (let i = 1; i < MyServer.PRESENT_COUNT + 1; i++) {
             this.users[name].presentCodes[i] = codes[i-1];
         }
         this._updateData(); 
@@ -237,7 +238,7 @@ exports.CommandManager = class CommandManager {
 }
 
 function argValidator(desiredArgObj, argList) {
-    for (i in argList) {
+    for (let i in argList) {
         if (!(argList[i] in desiredArgObj)) {
             return false
         };
@@ -274,7 +275,7 @@ exports.command = (func, ...desiredArgs) => {
 exports.helpCommand = (commandManager) => {
     var command = exports.command((server, args) => {
         var rString = "";
-        for (command in commandManager.commands) {
+        for (let command in commandManager.commands) {
             rString += `(${command}) `;
         }
         return {
@@ -349,7 +350,7 @@ exports.getActiveClients = exports.command((server, args) => {
     var clients = server.clients;
     var rString = "";
     var i = 1;
-    for (user in clients) {
+    for (let user in clients) {
         rString += `(${i}: ${user})`;
         i++;
     }

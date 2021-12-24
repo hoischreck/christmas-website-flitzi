@@ -28,7 +28,7 @@ var app = express();
 var myServer = new server.MyServer(app);
 var myCommands = new server.CommandManager(myServer);
 
-var mauMauManager = new mauMau.Manager();
+var mauMauManager = new mauMau.Manager(myServer);
 
 var urlencodedParser = bodyParser.urlencoded({extended: false})
 
@@ -286,7 +286,7 @@ var verifyChallengeCommand = server.command((server, args) => {
 
 var checkChallengeProgressCommand = server.command((server, args) => {
     var rString = "";
-    for (i in myServer.users[args.name].additionalPresentData[3].challenges.finished) {
+    for (let i in myServer.users[args.name].additionalPresentData[3].challenges.finished) {
         rString += `(Challenge_${i}: ${myServer.users[args.name].additionalPresentData[3].challenges.finished[i]}) `
     }
     return {
@@ -297,6 +297,32 @@ var checkChallengeProgressCommand = server.command((server, args) => {
 
 myCommands.addCommand("verifyChallenge", verifyChallengeCommand);
 myCommands.addCommand("checkChallengeProgress", checkChallengeProgressCommand);
+
+var showLobbiesCommand = server.command((server, args) => {
+    var rString = "";
+    for (let l in mauMauManager.lobbies) {
+        let lobby = mauMauManager.lobbies[l];
+        rString += `(${l} - players: ${lobby.size()}/2) ` //there can only be 2 players
+    }
+    return {
+        completed: true,
+        result: rString
+    }
+})
+
+
+var closeLobbyCommand = server.command((server, args) => {
+    if (!mauMauManager.removeLobby(args.code)) {
+        throw Error("Lobby with code: '" + args.code + "' does not exist!");
+    }
+    return {
+        completed: true,
+        result: `Lobby with code: "${args.code}" was deleted`
+    }
+}, "code")
+
+myCommands.addCommand("showLobbies", showLobbiesCommand);
+myCommands.addCommand("closeLobby", closeLobbyCommand);
 
 // start server
 myServer.listen(PORT);

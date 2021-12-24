@@ -6,19 +6,32 @@ const { all } = require("express/lib/application");
 const cardDir = __dirname + "/assets/img/cards";
 
 exports.Manager = class MauMauLobbyManager {
-    constructor() {
+    static mustWin = 3;
+
+    constructor(myServer) {
+        this.myServer = myServer;
         this.lobbies = {};
         this.connectedPlayers = {};
     }
     
     addLobby(code) {
         if (!(code in this.lobbies)) {
-            this.lobbies[code] = new Lobby(code);
+            this.lobbies[code] = new Lobby(code, this);
             return true;
         } else {
             return false;
             //throw Error("Lobby-Code already exists");
         }
+    }
+
+    removeLobby(code) {
+        if (!this.lobbies.hasOwnProperty(code)) return false;
+        let lobby = this.lobbies[code];
+        for (let p in lobby.players) {
+            this.leaveLobby(lobby.players[p].name, code);
+        }
+        delete this.lobbies[code];
+        return true;
     }
 
     addOnlinePlayer(playerName, socket) {
@@ -93,6 +106,12 @@ exports.Manager = class MauMauLobbyManager {
         lobby.checkGameStart();
     }
 
+    // special method for myServer
+    addWin(playerName) {
+        this.myServer.users[playerName].additionalPresentData[1].wonGames += 1;
+        this.myServer._updateData();
+    }
+
     _addMessageHandler(playerName) {
         let socket = this.connectedPlayers[playerName].socket;
         socket.on("message", (rawData) => {
@@ -129,6 +148,19 @@ exports.Manager = class MauMauLobbyManager {
 
                 case "unreadyPlayer":
                     this.playerReadyState(data.name, data.lobby, false);
+                    break;
+
+                case "updateWinCounter":
+                    let totalWins = this.myServer.users[data.playerName].additionalPresentData[1].wonGames;
+                    socket.send(JSON.stringify({
+                        type: "setWinCounter",
+                        wins: totalWins
+                    }))
+                    if (totalWins >= MauMauLobbyManager.mustWin) {
+                        socket.send(JSON.stringify({
+                            type: "unlockPresent"
+                        }))
+                    }
                     break;
             }
         })  
@@ -232,11 +264,16 @@ class Lobby {
 
     playerDisconnect(playerName) {
         this.game.terminatePlayer(playerName);
-        this.endGame();
+        this.game.end();
     }
 
     endGame() {
         this.game.end();
+        for (let p in this.players) {
+            this.readyPlayer(this.players[p].name, false);
+        }
+        this.updateClientLobbies();
+        delete this.game;
     }
 
     isFull() {
@@ -258,10 +295,14 @@ class Lobby {
     }
 
     updateClientLobbies() {
+        let playerNames = [];
+        for (let i in this.players) {
+            playerNames.push(this.players[i].name);
+        }
         this.sendAll({
             type: "updateLobby",
             code: this.code,
-            players: this.players,
+            players: playerNames,
             lobbySize: this.size(),
             readyCount: this.readyCount()
         })
@@ -283,6 +324,7 @@ class Lobby {
 // allow drawing in the beginning?
 class MauMauGame {
     static cardsPerPlayer = 6;
+    static drawConstant = 2; //drawing 2 cards per 7
     static cardBackSideFile = "blue.png"
 
     constructor(playerLobby) {
@@ -296,28 +338,58 @@ class MauMauGame {
             switch (data.type) {
                 case "playCard":
                     if (!game.validatePlayTurn(data.playerName, data.playedCard, data.upperCard)) return; //invalid turn action request
+                    game.rankOverride = null;
                     game.updatedPlayedCard(data.playedCard);
                     game.updateAllPlayers();
-                    // for test purposes
-                    game.notifyNextTurn();
-
-                    console.log("cards and turn are valid");
+                    if(!game.checkIfWon()) {
+                        game.chooseNextTurn(data.playedCard);
+                    } else {
+                        let winner = game.turnPlayer;
+                        console.log(winner.name + " has won the game");
+                        game.lobby.sendAll({
+                            type: "gameLost"
+                        }, winner.name)
+                        winner.socket.send(JSON.stringify({
+                            type: "gameWon"
+                        }))
+                        // save win to myServer
+                        game.lobby.lobbyManager.addWin(winner.name);
+                        game.lobby.endGame();
+                    }
                     break;
                 
                 case "drawCard":
                     if (!game.validateCardDraw(data.playerName)) return;
                     game.updateDrawCard();
+                    game.startedDrawing = true; // conter is not allowed
                     game.updateAllPlayers();
+                    console.log("draws remaining after: " + game.drawsLeft)
                     if (game.drawsLeft < 1) {
+                        game.startedDrawing = false;
+                        game.forceDraw = false;
                         game.notifyNextTurn();
                     } else {
+                        console.log("nochmal")
                         game.notifyNextTurn(false);
                     }
                      // calls same player again
                     break;
+
+                case "rankOverride":
+                    if (!game.validateRankOverride(data.playerName)) return;
+                    console.log("valid override");
+                    game.updateRankOverride(data.newCardRank);
+                    game.updateAllPlayers();
+                    game.awaitingRankOverride = false;
+                    game.notifyNextTurn();
+                    break;
             }
         }
         return onMessage;
+    }
+
+    updateRankOverride(newRank) {
+        this.rankOverride = newRank;
     }
 
     updatedPlayedCard(playedCard) {
@@ -329,19 +401,36 @@ class MauMauGame {
                 this.turnPlayer.cards.splice(c, 1);
                 break;
             } 
-        }
+        }        
+    }
+
+    checkIfWon() {
+        //todo: change to < 1
+        return (this.turnPlayer.cards.length < 1) ? true : false;
+    }
+
+    chooseNextTurn(playedCard) {
         // apply special card effects if any
         if (playedCard.value == "jack") {
             // notify player to wish next symbol
-            console.log("jack has been played")
-            return;
+            this.awaitingRankOverride = true;
+            this.notifyNextTurn(false, "chooseNewRank");
         } else if (playedCard.value == "7") {
             // notfiy next player to draw cards
-            console.log("7 has been played")
-            return;
+            console.log("played a 7")
+            if (this.drawsLeft == 1 && !this.startedDrawing) {
+                this.drawsLeft = MauMauGame.drawConstant;
+            } else {
+                this.drawsLeft += MauMauGame.drawConstant;
+            }
+            
+            console.log("must draw: " + this.drawsLeft);
+            this.forceDraw = true;
+            this.updateAllPlayers();
+            this.notifyNextTurn(true, "forceDraw", false);
         } else {
-            console.log("a normal turn")
             // next players turn
+            this.notifyNextTurn();
         }
         //todo: apply effects
     }
@@ -349,6 +438,7 @@ class MauMauGame {
     updateDrawCard() {
         //todo: when no cards left shuffle
         this.turnPlayer.cards.push(this._randomPop(this.deckCards));
+        console.log("draws before: " + this.drawsLeft)
         this.drawsLeft--;
         if (this.deckCards.length < 1) {
             this.deckCards = this._shuffle(this.playedCards.slice(0, -1));
@@ -363,6 +453,10 @@ class MauMauGame {
         this.deckCards = [];
         this.playedCards = [];
         this.upperCard = null;
+        this.rankOverride = null;
+        this.awaitingRankOverride = false;
+        this.forceDraw = false;
+        this.startedDrawing = false;
         fs.readdirSync(cardDir).forEach(file => {
             if (file == MauMauGame.cardBackSideFile) return;
             this.deckCards.push(new Card("/img/cards/" + file));
@@ -399,7 +493,7 @@ class MauMauGame {
         }
     }
 
-    notifyNextTurn(nextPlayer=true, specialAction=null) {
+    notifyNextTurn(nextPlayer=true, specialAction=null, resetDraws=true) {
         if (nextPlayer) {
             if (this.currenPlayerIndx < this.activePlayers.length-1) {
                 this.currenPlayerIndx++;
@@ -407,7 +501,7 @@ class MauMauGame {
                 this.currenPlayerIndx = 0;
             }
             this.turnPlayer = this.activePlayers[this.currenPlayerIndx];
-            this.drawsLeft = 1;
+            if (resetDraws) this.drawsLeft = 1;
         }
 
         this.turnPlayer.socket.send(JSON.stringify({
@@ -420,6 +514,7 @@ class MauMauGame {
     // player turn must be validated and compared with server side
     validatePlayTurn(playerName, playerCard, upperCard) {
         if (this.turnPlayer.name != playerName) return false; 
+        if (this.awaitingRankOverride) return;
         if (this.upperCard === null && upperCard !== null) return false;
         if (this.upperCard !== null) {
             if (this.upperCard.path != upperCard.path) return false;
@@ -432,14 +527,31 @@ class MauMauGame {
             }
         }
         if (!hasCard) return false;
+        if (this.rankOverride !== null) {
+            if (this.rankOverride != playerCard.rank && playerCard.value != "jack") return false;
+        } else {
+            if (this.upperCard !== null && this.upperCard.rank != playerCard.rank && this.upperCard.value != playerCard.value) return false;
+        }
+        if (this.startedDrawing) return false;
+        if (this.forceDraw) {
+            if (playerCard.value != "7") return false;
+        }
+
         return true;
     }
 
     validateCardDraw(playerName) {
         if (this.turnPlayer.name != playerName) return false; 
+        if (this.awaitingRankOverride) return;
         if (this.drawsLeft < 1) {
             return false;
         };
+        return true;
+    }
+
+    validateRankOverride(playerName) {
+        if (this.turnPlayer.name != playerName) return false;
+        if (!this.awaitingRankOverride) return false;
         return true;
     }
 
@@ -474,6 +586,10 @@ class MauMauGame {
                 remainingInDeck: this.amountInDeck(),
                 upperCard: this.upperCard,
                 enemyCardAmount: enemyCards,
+                rankOverride: this.rankOverride,
+                forceDraw: this.forceDraw, 
+                drawsLeft: this.drawsLeft,
+                startedDrawing: this.startedDrawing
             }))
 
         }

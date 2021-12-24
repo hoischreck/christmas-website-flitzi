@@ -126,6 +126,21 @@
                     </div>
                 </div>
 
+                <div id="challenge7" class="challenge__container flex-column">
+                    <h2 class="challenge__heading">
+                        Aufgabe 7
+                    </h2>
+                    <p class="challenge__paragraph">
+                        Brate 4 Spiegeleier in <u>einer</u> Pfanne gleichzeitg.
+                    </p>
+                    <div class="challenge__container_status">
+                        <b>Status:</b>
+                        <span class="challenge__status">
+                            Nicht erledigt
+                        </span>
+                    </div>
+                </div>
+
                 <input class="btn-1 present_reveal__btn present_reveal__btn-blocked" type="button" value="Schalte dein 3. Geschenk frei!" onclick="showPresent()">
 
                 <div class="present_reveal__container hide">
@@ -136,6 +151,23 @@
                         <br>
                         Ich habe ein wenig geschwindelt, aber das wirst du augenblicklich verstehen. Um das Rätselslösung, sowie das dritte und letzte Geschenk zu finden, musst du im Schrank deiner Mutter nachschauen.
                     </p>
+
+                    <div class="flex-row flex-xy present_code__container" style="width: 90%;padding: 0 .9rem 0 .9rem;">
+                        <div class="intro__container_text present_code__text_container">
+                            <p class="intro__paragraph">
+                                <b>Hier endet nun diese kleine Reise. Ich hoffe dir gefällt diese kleine Aufmerksamkeit. Nach über 100h Arbeit an diesem Projekt möchte ich das hoffen, obwohl ich natürlich vor allem für mich persönlich vieles gelernt habe. Bis dahin, frohe Weihnachten!</b>
+                            </p>
+                        </div>
+                        <div class="present_btn__container">
+                            <a href="/" class="present_btn__anchor">
+                                <div class="present_btn__anchor_container flex-xy">
+                                    <img class="image-fill" src="/img/present.png" alt="Startseite">
+                                    <div class="present_btn__overlap">Startseite</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
                 </div>
 
             </div>
@@ -162,7 +194,7 @@
     const hideCssClass = "hide";
     const animationCssClass = "present_reveal-animation";
 
-    const challengeCount = 6;
+    const challengeCount = 7;
 
     const user = JSON.parse('<%- JSON.stringify(user) %>');
 
